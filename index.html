@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Depo Yönetim Sistemi</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
 
@@ -483,15 +483,10 @@
   <!-- Kamera Tarama -->
   <div class="card" id="cameraCard" style="display:none">
     <div class="card-title">Kamera ile Okut</div>
-    <div class="scan-area">
-      <video id="video" playsinline autoplay muted></video>
-      <div class="scan-overlay">
-        <div class="scan-frame">
-          <span></span>
-          <div class="scan-line"></div>
-        </div>
-      </div>
-      <div class="scan-hint">QR kodu çerçeve içine alın</div>
+    <div class="scan-area" style="aspect-ratio:unset; max-height:unset;">
+      <video id="video" playsinline autoplay muted style="display:none"></video>
+      <div id="html5qr-scanner" style="width:100%;"></div>
+      <div class="scan-hint" style="position:relative;padding:8px 0;text-align:center;">QR / DataMatrix kodu çerçeve içine alın</div>
     </div>
     <div class="mt-8">
       <button class="btn btn-ghost" onclick="stopCamera()">📷 Kamerayı Durdur</button>
@@ -833,65 +828,54 @@ async function startCamera() {
   if (!state.sessionActive) { showToast('Önce oturum başlatın!', 'error'); return; }
   
   try {
-    const constraints = {
-      video: {
-        facingMode: 'environment',
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
-    };
-    videoStream = await navigator.mediaDevices.getUserMedia(constraints);
-    const video = document.getElementById('video');
-    video.srcObject = videoStream;
-    
     document.getElementById('cameraCard').style.display = 'block';
     document.getElementById('manualCard').style.display = 'none';
     state.cameraActive = true;
-    
-    video.onloadedmetadata = () => {
-      video.play();
-      startScanLoop();
-    };
+    startScanLoop();
   } catch(e) {
     showToast('Kamera erişimi reddedildi', 'error');
   }
 }
 
 function stopCamera() {
+  if (window._html5QrScanner) {
+    window._html5QrScanner.stop().catch(()=>{});
+    window._html5QrScanner = null;
+  }
   if (videoStream) {
     videoStream.getTracks().forEach(t => t.stop());
     videoStream = null;
   }
   if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
   state.cameraActive = false;
+  document.getElementById('video').style.display = 'block';
   document.getElementById('cameraCard').style.display = 'none';
   document.getElementById('manualCard').style.display = state.sessionActive ? 'block' : 'none';
 }
 
 function startScanLoop() {
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
+  // Html5Qrcode ile DataMatrix + QR + Barkod okuma
+  if (window._html5QrScanner) {
+    window._html5QrScanner.stop().catch(()=>{});
+  }
+  // video elementini gizle, html5-qrcode kendi oluşturacak
+  document.getElementById('video').style.display = 'none';
   
-  scanInterval = setInterval(() => {
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
-    if (state.scanCooldown) return;
-    
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-    
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: 'dontInvert'
-    });
-    
-    if (code) {
+  const scannerDiv = document.getElementById('html5qr-scanner');
+  
+  window._html5QrScanner = new Html5Qrcode('html5qr-scanner');
+  
+  window._html5QrScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 250, height: 250 }, supportedScanTypes: [0, 1] },
+    (decodedText) => {
+      if (state.scanCooldown) return;
       state.scanCooldown = true;
       setTimeout(() => { state.scanCooldown = false; }, 2500);
-      processBarcode(code.data);
-    }
-  }, 150);
+      processBarcode(decodedText);
+    },
+    () => {}
+  ).catch(e => { showToast('Kamera başlatılamadı: ' + e, 'error'); });
 }
 
 // ============================================
