@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Depo Yönetim Sistemi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3d;
+    --accent: #00e5ff;
+    --accent2: #ff3d71;
+    --accent3: #a855f7;
+    --success: #00e096;
+    --warning: #ffaa00;
+    --text: #e8e8f0;
+    --text-dim: #6b6b8a;
+    --font-mono: 'Space Mono', monospace;
+    --font-main: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-logo {
+    font-size: 18px; font-weight: 800; letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header-status {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-dim);
+    transition: all 0.3s;
+  }
+  .status-dot.connected { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .status-dot.error { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 1; min-width: 80px;
+    padding: 14px 8px;
+    text-align: center;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-icon { font-size: 18px; display: block; margin-bottom: 3px; }
+
+  /* PAGES */
+  .page { display: none; padding: 16px; max-width: 600px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* SESSION SELECTOR */
+  .session-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .session-btn {
+    padding: 20px 12px;
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .session-btn::before {
+    content: ''; position: absolute; inset: 0;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .session-btn.kabul::before { background: linear-gradient(135deg, rgba(0,229,255,0.1), transparent); }
+  .session-btn.cikis::before { background: linear-gradient(135deg, rgba(255,61,113,0.1), transparent); }
+  .session-btn.active.kabul { border-color: var(--accent); background: rgba(0,229,255,0.08); }
+  .session-btn.active.cikis { border-color: var(--accent2); background: rgba(255,61,113,0.08); }
+  .session-btn:hover::before { opacity: 1; }
+  .session-icon { font-size: 28px; margin-bottom: 6px; }
+  .session-label { font-size: 13px; font-weight: 700; }
+  .session-sub { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  /* INPUTS */
+  .input-group { margin-bottom: 12px; }
+  .input-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .input-field {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: var(--font-main);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .input-field:focus { border-color: var(--accent); }
+  select.input-field { cursor: pointer; }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    font-family: var(--font-main);
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #0099aa);
+    color: #000;
+  }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-danger {
+    background: linear-gradient(135deg, var(--accent2), #aa1133);
+    color: #fff;
+  }
+  .btn-ghost {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* SCAN AREA */
+  .scan-area {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 4/3;
+    max-height: 260px;
+  }
+  #video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .scan-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scan-frame {
+    width: 180px; height: 180px;
+    position: relative;
+  }
+  .scan-frame::before, .scan-frame::after,
+  .scan-frame span::before, .scan-frame span::after {
+    content: '';
+    position: absolute;
+    width: 28px; height: 28px;
+    border-color: var(--accent);
+    border-style: solid;
+  }
+  .scan-frame::before { top: 0; left: 0; border-width: 3px 0 0 3px; }
+  .scan-frame::after { top: 0; right: 0; border-width: 3px 3px 0 0; }
+  .scan-frame span::before { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
+  .scan-frame span::after { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
+  .scan-line {
+    position: absolute; left: 10%; right: 10%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scanMove 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  @keyframes scanMove {
+    0%, 100% { top: 15%; }
+    50% { top: 85%; }
+  }
+  .scan-hint {
+    position: absolute; bottom: 12px; left: 0; right: 0;
+    text-align: center; font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    font-family: var(--font-mono);
+  }
+
+  /* MANUAL INPUT */
+  .manual-row {
+    display: flex; gap: 8px;
+  }
+  .manual-row .input-field { flex: 1; font-family: var(--font-mono); font-size: 12px; }
+  .manual-row .btn { width: auto; padding: 12px 16px; font-size: 13px; }
+
+  /* RESULT CARD */
+  .result-card {
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+    border: 1px solid;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .result-card.success { background: rgba(0,224,150,0.08); border-color: var(--success); }
+  .result-card.error { background: rgba(255,61,113,0.08); border-color: var(--accent2); }
+  .result-card.warning { background: rgba(255,170,0,0.08); border-color: var(--warning); }
+  .result-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .result-icon { font-size: 20px; }
+  .result-title { font-size: 13px; font-weight: 700; }
+  .result-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .result-field { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 8px 10px; }
+  .result-field-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.8px; text-transform: uppercase; }
+  .result-field-value { font-size: 13px; font-weight: 700; font-family: var(--font-mono); margin-top: 2px; word-break: break-all; }
+  .result-field.full { grid-column: 1/-1; }
+
+  /* BADGE */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .badge-kabul { background: rgba(0,229,255,0.15); color: var(--accent); }
+  .badge-cikis { background: rgba(255,61,113,0.15); color: var(--accent2); }
+  .badge-success { background: rgba(0,224,150,0.15); color: var(--success); }
+  .badge-warning { background: rgba(255,170,0,0.15); color: var(--warning); }
+
+  /* LOG LIST */
+  .log-list { display: flex; flex-direction: column; gap: 8px; }
+  .log-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .log-item-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .log-item-icon.kabul { background: rgba(0,229,255,0.1); }
+  .log-item-icon.cikis { background: rgba(255,61,113,0.1); }
+  .log-item-body { flex: 1; min-width: 0; }
+  .log-item-title { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .log-item-sub { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); margin-top: 2px; }
+  .log-item-time { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); text-align: right; flex-shrink: 0; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-value { font-size: 28px; font-weight: 800; font-family: var(--font-mono); }
+  .stat-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.8px; text-transform: uppercase; margin-top: 4px; }
+  .stat-card.kabul .stat-value { color: var(--accent); }
+  .stat-card.cikis .stat-value { color: var(--accent2); }
+
+  /* SETTINGS */
+  .setting-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-label { font-size: 14px; font-weight: 600; }
+  .setting-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .toggle {
+    width: 44px; height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    position: relative; cursor: pointer;
+    transition: background 0.2s; flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    background: #fff; border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(20px); }
+
+  /* TOAST */
+  .toast-container {
+    position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+    z-index: 999; display: flex; flex-direction: column; gap: 6px;
+    pointer-events: none; width: calc(100% - 32px); max-width: 400px;
+  }
+  .toast {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px; font-weight: 600;
+    text-align: center;
+    animation: toastIn 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+  .toast.success { background: rgba(0,224,150,0.9); color: #000; }
+  .toast.error { background: rgba(255,61,113,0.9); color: #fff; }
+  .toast.info { background: rgba(0,229,255,0.9); color: #000; }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--text-dim);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-text { font-size: 14px; }
+
+  /* SESSION ACTIVE BAR */
+  .session-bar {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .session-bar-info { font-size: 12px; }
+  .session-bar-label { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .session-bar-end {
+    font-size: 11px; color: var(--accent2);
+    font-weight: 700; cursor: pointer;
+    padding: 4px 10px; border-radius: 6px;
+    background: rgba(255,61,113,0.1);
+    border: 1px solid rgba(255,61,113,0.3);
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+  .text-mono { font-family: var(--font-mono); }
+  .text-sm { font-size: 12px; }
+  .text-dim { color: var(--text-dim); }
+  .mt-8 { margin-top: 8px; }
+  .flex-row { display: flex; gap: 8px; }
+  .flex-row .btn { flex: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">⬡ DEPO SİSTEMİ</div>
+  <div class="header-status">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Bağlı Değil</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPage('scan')" id="tab-scan">
+    <span class="tab-icon">⬡</span>OKUT
+  </div>
+  <div class="tab" onclick="showPage('log')" id="tab-log">
+    <span class="tab-icon">▤</span>GEÇMİŞ
+  </div>
+  <div class="tab" onclick="showPage('stats')" id="tab-stats">
+    <span class="tab-icon">◈</span>İSTATİSTİK
+  </div>
+  <div class="tab" onclick="showPage('settings')" id="tab-settings">
+    <span class="tab-icon">⊙</span>AYARLAR
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- SCAN PAGE -->
+<div class="page active" id="page-scan">
+
+  <!-- Session Seçimi -->
+  <div class="card" id="sessionSelector">
+    <div class="card-title">Oturum Tipi</div>
+    <div class="session-grid">
+      <div class="session-btn kabul" id="btn-kabul" onclick="selectSession('kabul')">
+        <div class="session-icon">📦</div>
+        <div class="session-label">MAL KABUL</div>
+        <div class="session-sub">Stoğa Ekle</div>
+      </div>
+      <div class="session-btn cikis" id="btn-cikis" onclick="selectSession('cikis')">
+        <div class="session-icon">🚚</div>
+        <div class="session-label">MAL ÇIKIŞ</div>
+        <div class="session-sub">Stoktan Düş</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Depo & İrsaliye -->
+  <div class="card">
+    <div class="card-title">Oturum Bilgileri</div>
+    <div class="input-group">
+      <label class="input-label">Depo</label>
+      <select class="input-field" id="depoSelect">
+        <option value="">Depo Seçin...</option>
+        <option>İstanbul Ana Depo</option>
+        <option>Ankara Depo</option>
+        <option>İzmir Depo</option>
+        <option>Bursa Depo</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">İrsaliye / Sipariş No</label>
+      <input type="text" class="input-field" id="irsaliyeNo" placeholder="Örn: DD2026-20Z/60">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Kullanıcı</label>
+      <input type="text" class="input-field" id="kullanici" placeholder="Ad Soyad">
+    </div>
+  </div>
+
+  <!-- Aktif Oturum Barı (gizli başlar) -->
+  <div id="sessionBar" style="display:none">
+    <div class="session-bar">
+      <div class="session-bar-info">
+        <div class="session-bar-label">Aktif Oturum</div>
+        <div id="sessionBarText" style="font-size:13px; font-weight:700; margin-top:2px;"></div>
+      </div>
+      <div class="session-bar-end" onclick="endSession()">Bitir ✕</div>
+    </div>
+  </div>
+
+  <!-- Kamera Tarama -->
+  <div class="card" id="cameraCard" style="display:none">
+    <div class="card-title">Kamera ile Okut</div>
+    <div class="scan-area">
+      <video id="video" playsinline autoplay muted></video>
+      <div class="scan-overlay">
+        <div class="scan-frame">
+          <span></span>
+          <div class="scan-line"></div>
+        </div>
+      </div>
+      <div class="scan-hint">QR kodu çerçeve içine alın</div>
+    </div>
+    <div class="mt-8">
+      <button class="btn btn-ghost" onclick="stopCamera()">📷 Kamerayı Durdur</button>
+    </div>
+  </div>
+
+  <!-- Manuel / USB Giriş -->
+  <div class="card" id="manualCard" style="display:none">
+    <div class="card-title">Barkod Okut / Gir</div>
+    <div class="manual-row">
+      <input type="text" class="input-field text-mono" id="barcodeInput"
+        placeholder="Barkodu okutun veya yazın..."
+        autocomplete="off" autocorrect="off" autocapitalize="off">
+      <button class="btn btn-primary" onclick="processManual()" style="width:auto;padding:12px 16px;">▶</button>
+    </div>
+    <div class="mt-8 flex-row">
+      <button class="btn btn-ghost" onclick="startCamera()" style="font-size:12px;">📷 Kamera Aç</button>
+    </div>
+  </div>
+
+  <!-- Oturum Başlat Butonu -->
+  <div id="startSessionDiv">
+    <button class="btn btn-primary" onclick="startSession()">Oturumu Başlat →</button>
+  </div>
+
+  <!-- Sonuç Alanı -->
+  <div id="resultArea"></div>
+
+</div>
+
+<!-- LOG PAGE -->
+<div class="page" id="page-log">
+  <div class="card">
+    <div class="card-title">İşlem Geçmişi</div>
+    <div id="logList">
+      <div class="empty-state">
+        <div class="empty-icon">▤</div>
+        <div class="empty-text">Henüz işlem yapılmadı</div>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-ghost" onclick="clearLog()" style="font-size:12px; margin-top:4px;">Geçmişi Temizle</button>
+</div>
+
+<!-- STATS PAGE -->
+<div class="page" id="page-stats">
+  <div class="stats-grid">
+    <div class="stat-card kabul">
+      <div class="stat-value" id="statKabul">0</div>
+      <div class="stat-label">Mal Kabul</div>
+    </div>
+    <div class="stat-card cikis">
+      <div class="stat-value" id="statCikis">0</div>
+      <div class="stat-label">Mal Çıkış</div>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" id="statTotal" style="color:var(--accent3)">0</div>
+      <div class="stat-label">Toplam İşlem</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statHata" style="color:var(--warning)">0</div>
+      <div class="stat-label">Hata / Uyarı</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Son Oturumlar</div>
+    <div id="sessionHistory">
+      <div class="empty-state">
+        <div class="empty-icon">◈</div>
+        <div class="empty-text">Oturum verisi yok</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="page" id="page-settings">
+  <div class="card">
+    <div class="card-title">Google Sheets Bağlantısı</div>
+    <div class="input-group">
+      <label class="input-label">Apps Script Web App URL</label>
+      <input type="url" class="input-field text-mono" id="scriptUrl"
+        placeholder="https://script.google.com/macros/s/..." style="font-size:11px;">
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">Kaydet & Test Et</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Depo Listesi</div>
+    <div class="input-group">
+      <label class="input-label">Depo Ekle</label>
+      <div class="manual-row">
+        <input type="text" class="input-field" id="newDepo" placeholder="Depo adı...">
+        <button class="btn btn-primary" onclick="addDepo()" style="width:auto;padding:12px 16px;">+</button>
+      </div>
+    </div>
+    <div id="depoListSettings"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Tercihler</div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Ses Bildirimi</div>
+        <div class="setting-sub">Başarılı okutmada bip sesi</div>
+      </div>
+      <div class="toggle on" id="toggle-ses" onclick="toggleSetting('ses')"></div>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Titreşim</div>
+        <div class="setting-sub">Okutmada titreşim</div>
+      </div>
+      <div class="toggle on" id="toggle-titresim" onclick="toggleSetting('titresim')"></div>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Otomatik Sheets'e Gönder</div>
+        <div class="setting-sub">Her okutmada anında gönder</div>
+      </div>
+      <div class="toggle on" id="toggle-autosend" onclick="toggleSetting('autosend')"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Hakkında</div>
+    <div class="text-sm text-dim">
+      <div style="margin-bottom:6px;">Depo Yönetim Sistemi v1.0</div>
+      <div>GS1 Hibrit Format Destekli</div>
+      <div style="margin-top:6px; font-family:var(--font-mono); font-size:10px;">Doğtaş / Kelebek formatları tanımlı</div>
+    </div>
+  </div>
+</div>
+
+<canvas id="canvas" style="display:none"></canvas>
+
+<script>
+// ============================================
+// STATE
+// ============================================
+let state = {
+  sessionType: null,
+  sessionActive: false,
+  depo: '',
+  irsaliye: '',
+  kullanici: '',
+  log: JSON.parse(localStorage.getItem('depo_log') || '[]'),
+  settings: JSON.parse(localStorage.getItem('depo_settings') || '{"scriptUrl":"https://script.google.com/macros/s/AKfycbx0TxHZW0PQJR5QsVJGkRffQDNwiW-Z-X8OcrRkuhaDDyvSnaCcJ89eYEfESkovM0-K/exec","ses":true,"titresim":true,"autosend":true}'),
+  stats: JSON.parse(localStorage.getItem('depo_stats') || '{"kabul":0,"cikis":0,"hata":0}'),
+  depolar: JSON.parse(localStorage.getItem('depo_list') || '["İstanbul Ana Depo","Ankara Depo","İzmir Depo","Bursa Depo"]'),
+  cameraActive: false,
+  scanCooldown: false
+};
+
+let videoStream = null;
+let scanInterval = null;
+
+// ============================================
+// PARSING ALGORİTMASI
+// ============================================
+function parseBarcode(raw) {
+  raw = raw.trim();
+  
+  if (raw.length < 20) {
+    return { error: 'Barkod çok kısa, geçersiz format' };
+  }
+
+  // GS1 Hibrit Format (Doğtaş / Kelebek)
+  if (raw.startsWith('01') && raw.length > 50) {
+    return parseGS1Hybrid(raw);
+  }
+
+  // Düz EAN-13 / EAN-8
+  if (/^\d{8,14}$/.test(raw)) {
+    return {
+      format: 'EAN',
+      gtin: raw,
+      urunKodu: raw,
+      paketSirasi: null,
+      toplamPaket: null,
+      paketSeriNo: null,
+      sasNo: null,
+      ham: raw
+    };
+  }
+
+  // Bilinmeyen format — ham veriyi döndür
+  return {
+    format: 'BILINMEYEN',
+    gtin: null,
+    urunKodu: raw.slice(-10),
+    paketSirasi: null,
+    toplamPaket: null,
+    paketSeriNo: null,
+    sasNo: null,
+    ham: raw
+  };
+}
+
+function parseGS1Hybrid(raw) {
+  try {
+    // GTIN: pozisyon 2-15 (14 hane)
+    const gtin = raw.substring(2, 16);
+
+    // AI 21 veya 22 vs → Paket sırası ve seri no
+    // Bul "21" veya "2X" bloğunu
+    let paketSirasi = null;
+    let paketSeriNo = null;
+    
+    // Pozisyon 16-17 AI kontrolü
+    const aiPaket = raw.substring(16, 18);
+    if (aiPaket === '21' || (aiPaket[0] === '2' && !isNaN(aiPaket[1]))) {
+      paketSirasi = parseInt(aiPaket[1]) || 1;
+      paketSeriNo = raw.substring(18, 36);
+    }
+
+    // SAS No: AI 95 → bul ve sonraki 10 hane
+    let sasNo = null;
+    const ai95idx = raw.indexOf('95');
+    if (ai95idx !== -1 && ai95idx > 50) {
+      sasNo = raw.substring(ai95idx + 2, ai95idx + 12);
+    }
+
+    // Ürün Kodu: son 10 karakter
+    const urunKodu = raw.slice(-10);
+
+    // Paket kodu: AI 21 bloğundan sonra gelen kısa blok
+    // Genelde "21XXXXXXXX99000000003120012940" yapısında
+    // 99 AI'dan önceki 7+ hane
+    let paketKodu = null;
+    const ai99idx = raw.lastIndexOf('99');
+    if (ai99idx !== -1) {
+      // 99'dan önceki bloğu bul
+      const beforeAI99 = raw.substring(ai99idx - 9, ai99idx);
+      paketKodu = beforeAI99.replace(/^0+/, '') || beforeAI99;
+    }
+
+    // Toplam paket: etiketten okuyamıyoruz direkt, 
+    // ancak paket seri no içinde kodlı olabilir
+    // Şimdilik null, ileride genişletilebilir
+
+    return {
+      format: 'GS1-HYBRİD',
+      gtin,
+      urunKodu,
+      paketSirasi,
+      paketSeriNo: paketSeriNo ? paketSeriNo.trim() : null,
+      paketKodu,
+      sasNo,
+      ham: raw
+    };
+
+  } catch(e) {
+    return { error: 'Parse hatası: ' + e.message, ham: raw };
+  }
+}
+
+// ============================================
+// UI - SAYFA GEÇİŞİ
+// ============================================
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  
+  if (name === 'log') renderLog();
+  if (name === 'stats') renderStats();
+  if (name === 'settings') renderSettings();
+}
+
+// ============================================
+// OTURUM YÖNETİMİ
+// ============================================
+function selectSession(type) {
+  state.sessionType = type;
+  document.getElementById('btn-kabul').classList.remove('active');
+  document.getElementById('btn-cikis').classList.remove('active');
+  document.getElementById('btn-' + type).classList.add('active');
+}
+
+function startSession() {
+  if (!state.sessionType) { showToast('Oturum tipi seçin!', 'error'); return; }
+  const depo = document.getElementById('depoSelect').value;
+  const irsaliye = document.getElementById('irsaliyeNo').value.trim();
+  const kullanici = document.getElementById('kullanici').value.trim();
+  
+  if (!depo) { showToast('Depo seçin!', 'error'); return; }
+  if (!irsaliye) { showToast('İrsaliye/Sipariş no girin!', 'error'); return; }
+  if (!kullanici) { showToast('Kullanıcı adı girin!', 'error'); return; }
+
+  state.depo = depo;
+  state.irsaliye = irsaliye;
+  state.kullanici = kullanici;
+  state.sessionActive = true;
+
+  document.getElementById('startSessionDiv').style.display = 'none';
+  document.getElementById('sessionBar').style.display = 'block';
+  document.getElementById('cameraCard').style.display = 'none';
+  document.getElementById('manualCard').style.display = 'block';
+
+  const typeLabel = state.sessionType === 'kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
+  document.getElementById('sessionBarText').innerHTML =
+    `<span class="badge badge-${state.sessionType}">${typeLabel}</span> ${irsaliye} · ${depo}`;
+
+  showToast('Oturum başlatıldı!', 'success');
+  
+  // USB barkod okuyucu için input'a focus
+  setTimeout(() => {
+    document.getElementById('barcodeInput').focus();
+  }, 300);
+}
+
+function endSession() {
+  if (!confirm('Oturumu bitirmek istediğinize emin misiniz?')) return;
+  
+  stopCamera();
+  state.sessionActive = false;
+  state.sessionType = null;
+  
+  document.getElementById('startSessionDiv').style.display = 'block';
+  document.getElementById('sessionBar').style.display = 'none';
+  document.getElementById('cameraCard').style.display = 'none';
+  document.getElementById('manualCard').style.display = 'none';
+  document.getElementById('resultArea').innerHTML = '';
+  document.getElementById('btn-kabul').classList.remove('active');
+  document.getElementById('btn-cikis').classList.remove('active');
+
+  saveStats();
+  showToast('Oturum sonlandırıldı', 'info');
+}
+
+// ============================================
+// KAMERA
+// ============================================
+async function startCamera() {
+  if (!state.sessionActive) { showToast('Önce oturum başlatın!', 'error'); return; }
+  
+  try {
+    const constraints = {
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    };
+    videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+    const video = document.getElementById('video');
+    video.srcObject = videoStream;
+    
+    document.getElementById('cameraCard').style.display = 'block';
+    document.getElementById('manualCard').style.display = 'none';
+    state.cameraActive = true;
+    
+    video.onloadedmetadata = () => {
+      video.play();
+      startScanLoop();
+    };
+  } catch(e) {
+    showToast('Kamera erişimi reddedildi', 'error');
+  }
+}
+
+function stopCamera() {
+  if (videoStream) {
+    videoStream.getTracks().forEach(t => t.stop());
+    videoStream = null;
+  }
+  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+  state.cameraActive = false;
+  document.getElementById('cameraCard').style.display = 'none';
+  document.getElementById('manualCard').style.display = state.sessionActive ? 'block' : 'none';
+}
+
+function startScanLoop() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  scanInterval = setInterval(() => {
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+    if (state.scanCooldown) return;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+    
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: 'dontInvert'
+    });
+    
+    if (code) {
+      state.scanCooldown = true;
+      setTimeout(() => { state.scanCooldown = false; }, 2500);
+      processBarcode(code.data);
+    }
+  }, 150);
+}
+
+// ============================================
+// BARKOD İŞLEME
+// ============================================
+function processManual() {
+  const val = document.getElementById('barcodeInput').value.trim();
+  if (!val) return;
+  processBarcode(val);
+  document.getElementById('barcodeInput').value = '';
+  document.getElementById('barcodeInput').focus();
+}
+
+function processBarcode(raw) {
+  if (!state.sessionActive) { showToast('Önce oturum başlatın!', 'error'); return; }
+  
+  const parsed = parseBarcode(raw);
+  
+  if (parsed.error) {
+    showResult('error', parsed);
+    state.stats.hata++;
+    feedback('error');
+    return;
+  }
+
+  // Başarılı
+  const entry = {
+    ...parsed,
+    sessionType: state.sessionType,
+    depo: state.depo,
+    irsaliye: state.irsaliye,
+    kullanici: state.kullanici,
+    timestamp: new Date().toISOString(),
+    id: Date.now()
+  };
+
+  state.log.unshift(entry);
+  if (state.log.length > 500) state.log.pop();
+  localStorage.setItem('depo_log', JSON.stringify(state.log));
+
+  state.stats[state.sessionType]++;
+  saveStats();
+
+  showResult('success', entry);
+  feedback('success');
+
+  // Google Sheets'e gönder
+  if (state.settings.autosend && state.settings.scriptUrl) {
+    sendToSheets(entry);
+  }
+}
+
+// ============================================
+// SONUÇ GÖSTERME
+// ============================================
+function showResult(type, data) {
+  const area = document.getElementById('resultArea');
+  
+  if (type === 'error') {
+    area.innerHTML = `
+      <div class="result-card error">
+        <div class="result-header">
+          <span class="result-icon">⚠️</span>
+          <span class="result-title">Parse Hatası</span>
+        </div>
+        <div class="result-fields">
+          <div class="result-field full">
+            <div class="result-field-label">Ham Veri</div>
+            <div class="result-field-value">${data.ham || 'Boş'}</div>
+          </div>
+          <div class="result-field full">
+            <div class="result-field-label">Hata</div>
+            <div class="result-field-value" style="color:var(--accent2)">${data.error}</div>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const typeLabel = data.sessionType === 'kabul' ? 'MAL KABUL' : 'MAL ÇIKIŞ';
+  const badgeClass = data.sessionType === 'kabul' ? 'badge-kabul' : 'badge-cikis';
+  const time = new Date(data.timestamp).toLocaleTimeString('tr-TR');
+
+  area.innerHTML = `
+    <div class="result-card success">
+      <div class="result-header">
+        <span class="result-icon">✅</span>
+        <span class="result-title">Okutma Başarılı</span>
+        <span class="badge ${badgeClass}" style="margin-left:auto">${typeLabel}</span>
+      </div>
+      <div class="result-fields">
+        <div class="result-field full">
+          <div class="result-field-label">Ürün Kodu</div>
+          <div class="result-field-value" style="font-size:18px;color:var(--accent)">${data.urunKodu || '—'}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">GTIN</div>
+          <div class="result-field-value">${data.gtin || '—'}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">Paket Sırası</div>
+          <div class="result-field-value" style="color:var(--accent3)">${data.paketSirasi ? data.paketSirasi + '. Paket' : '—'}</div>
+        </div>
+        <div class="result-field full">
+          <div class="result-field-label">Paket Seri No</div>
+          <div class="result-field-value">${data.paketSeriNo || '—'}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">SAS / İş Emri</div>
+          <div class="result-field-value">${data.sasNo || '—'}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">Saat</div>
+          <div class="result-field-value">${time}</div>
+        </div>
+        <div class="result-field full">
+          <div class="result-field-label">Format</div>
+          <div class="result-field-value" style="color:var(--text-dim);font-size:10px">${data.format}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ============================================
+// GOOGLE SHEETS GÖNDERME
+// ============================================
+async function sendToSheets(entry) {
+  if (!state.settings.scriptUrl) return;
+  
+  try {
+    updateStatus('connecting');
+    const response = await fetch(state.settings.scriptUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'addRow',
+        data: {
+          timestamp: entry.timestamp,
+          kullanici: entry.kullanici,
+          depo: entry.depo,
+          sessionType: entry.sessionType,
+          irsaliye: entry.irsaliye,
+          urunKodu: entry.urunKodu,
+          gtin: entry.gtin,
+          paketSirasi: entry.paketSirasi,
+          paketSeriNo: entry.paketSeriNo,
+          sasNo: entry.sasNo,
+          paketKodu: entry.paketKodu,
+          format: entry.format,
+          ham: entry.ham
+        }
+      })
+    });
+    updateStatus('connected');
+    showToast('Sheets\'e gönderildi ✓', 'success');
+  } catch(e) {
+    updateStatus('error');
+    showToast('Sheets bağlantı hatası', 'error');
+  }
+}
+
+// ============================================
+// LOG
+// ============================================
+function renderLog() {
+  const container = document.getElementById('logList');
+  if (state.log.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">▤</div><div class="empty-text">Henüz işlem yapılmadı</div></div>`;
+    return;
+  }
+  
+  container.innerHTML = '<div class="log-list">' + state.log.slice(0, 50).map(entry => {
+    const time = new Date(entry.timestamp).toLocaleString('tr-TR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const icon = entry.sessionType === 'kabul' ? '📦' : '🚚';
+    return `
+      <div class="log-item">
+        <div class="log-item-icon ${entry.sessionType}">${icon}</div>
+        <div class="log-item-body">
+          <div class="log-item-title">${entry.urunKodu || entry.gtin || 'Bilinmiyor'}</div>
+          <div class="log-item-sub">${entry.irsaliye} · ${entry.depo} · ${entry.kullanici}</div>
+        </div>
+        <div class="log-item-time">${time}</div>
+      </div>`;
+  }).join('') + '</div>';
+}
+
+function clearLog() {
+  if (!confirm('Tüm geçmiş silinecek, emin misiniz?')) return;
+  state.log = [];
+  localStorage.setItem('depo_log', '[]');
+  renderLog();
+  showToast('Geçmiş temizlendi', 'info');
+}
+
+// ============================================
+// STATS
+// ============================================
+function renderStats() {
+  document.getElementById('statKabul').textContent = state.stats.kabul;
+  document.getElementById('statCikis').textContent = state.stats.cikis;
+  document.getElementById('statTotal').textContent = state.stats.kabul + state.stats.cikis;
+  document.getElementById('statHata').textContent = state.stats.hata;
+}
+
+function saveStats() {
+  localStorage.setItem('depo_stats', JSON.stringify(state.stats));
+}
+
+// ============================================
+// SETTINGS
+// ============================================
+function renderSettings() {
+  document.getElementById('scriptUrl').value = state.settings.scriptUrl || '';
+  ['ses','titresim','autosend'].forEach(key => {
+    const el = document.getElementById('toggle-' + key);
+    if (el) el.className = 'toggle' + (state.settings[key] ? ' on' : '');
+  });
+  renderDepoList();
+}
+
+function saveSettings() {
+  state.settings.scriptUrl = document.getElementById('scriptUrl').value.trim();
+  localStorage.setItem('depo_settings', JSON.stringify(state.settings));
+  
+  if (state.settings.scriptUrl) {
+    testSheets();
+  } else {
+    showToast('Ayarlar kaydedildi', 'success');
+  }
+}
+
+async function testSheets() {
+  showToast('Bağlantı test ediliyor...', 'info');
+  updateStatus('connecting');
+  try {
+    await fetch(state.settings.scriptUrl + '?action=ping', { mode: 'no-cors' });
+    updateStatus('connected');
+    showToast('Sheets bağlantısı başarılı! ✓', 'success');
+  } catch(e) {
+    updateStatus('error');
+    showToast('Bağlantı kurulamadı', 'error');
+  }
+}
+
+function toggleSetting(key) {
+  state.settings[key] = !state.settings[key];
+  const el = document.getElementById('toggle-' + key);
+  el.className = 'toggle' + (state.settings[key] ? ' on' : '');
+  localStorage.setItem('depo_settings', JSON.stringify(state.settings));
+}
+
+function addDepo() {
+  const val = document.getElementById('newDepo').value.trim();
+  if (!val) return;
+  if (state.depolar.includes(val)) { showToast('Bu depo zaten var', 'error'); return; }
+  state.depolar.push(val);
+  localStorage.setItem('depo_list', JSON.stringify(state.depolar));
+  document.getElementById('newDepo').value = '';
+  renderDepoList();
+  updateDepoSelect();
+  showToast('Depo eklendi', 'success');
+}
+
+function renderDepoList() {
+  const container = document.getElementById('depoListSettings');
+  container.innerHTML = state.depolar.map((d, i) => `
+    <div class="setting-row">
+      <div class="setting-label">${d}</div>
+      <button onclick="removeDepo(${i})" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:16px;">✕</button>
+    </div>`).join('');
+}
+
+function removeDepo(i) {
+  state.depolar.splice(i, 1);
+  localStorage.setItem('depo_list', JSON.stringify(state.depolar));
+  renderDepoList();
+  updateDepoSelect();
+}
+
+function updateDepoSelect() {
+  const sel = document.getElementById('depoSelect');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Depo Seçin...</option>' +
+    state.depolar.map(d => `<option ${d===current?'selected':''}>${d}</option>`).join('');
+}
+
+// ============================================
+// FEEDBACK
+// ============================================
+function feedback(type) {
+  if (state.settings.ses) {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = type === 'success' ? 880 : 220;
+    o.type = type === 'success' ? 'sine' : 'sawtooth';
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    o.start(); o.stop(ctx.currentTime + 0.3);
+  }
+  if (state.settings.titresim && navigator.vibrate) {
+    navigator.vibrate(type === 'success' ? [50] : [100, 50, 100]);
+  }
+}
+
+// ============================================
+// TOAST & STATUS
+// ============================================
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+function updateStatus(status) {
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  if (status === 'connected') {
+    dot.className = 'status-dot connected';
+    text.textContent = 'Bağlı';
+  } else if (status === 'error') {
+    dot.className = 'status-dot error';
+    text.textContent = 'Hata';
+  } else {
+    dot.className = 'status-dot';
+    text.textContent = 'Bağlanıyor...';
+  }
+}
+
+// ============================================
+// USB BARKOD OKUYUCU (Enter ile tetikle)
+// ============================================
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.getElementById('barcodeInput') === document.activeElement) {
+    processManual();
+  }
+});
+
+// Input'a focus koru (USB okuyucu için)
+document.getElementById('barcodeInput').addEventListener('blur', () => {
+  if (state.sessionActive && !state.cameraActive) {
+    setTimeout(() => document.getElementById('barcodeInput').focus(), 100);
+  }
+});
+
+// ============================================
+// INIT
+// ============================================
+updateDepoSelect();
+renderStats();
+</script>
+</body>
+</html>
