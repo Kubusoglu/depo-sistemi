@@ -43,9 +43,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--main);min-height:1
 .logo-sub{font-size:10px;color:var(--dim);margin-top:-2px}
 .hdr-right{display:flex;align-items:center;gap:12px}
 .conn{display:flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);color:var(--dim)}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:background .3s}
 .dot.ok{background:#22c55e}
 .dot.err{background:var(--red)}
+.dot.sync{background:#f59e0b;animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .user-chip{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:4px 10px 4px 6px;cursor:pointer;transition:border-color .15s}
 .user-chip:hover{border-color:var(--border2)}
 .user-av{width:22px;height:22px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
@@ -248,7 +250,10 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
     </div>
   </div>
   <div class="hdr-right">
-    <div class="conn"><div class="dot" id="dot"></div><span id="dotTxt">Bağlı Değil</span></div>
+    <div class="conn" onclick="manualSync()" style="cursor:pointer" title="Senkronize et">
+      <div class="dot" id="dot"></div>
+      <span id="dotTxt">Bağlanıyor...</span>
+    </div>
     <div class="user-chip" onclick="doLogout()">
       <div class="user-av" id="userAv">?</div>
       <span class="user-name" id="userName">—</span>
@@ -553,45 +558,84 @@ function startApp() {
 
   fillDepoSelect('nf-depo');
   renderOturumlar();
-  if (DB.url) { setDot('ok'); sqFlush(); syncAll(); }
+  if (DB.url) { sqFlush(); startAutoSync(); }
+  else { setSyncStatus('err','Apps Script URL ayarlanmamış — Ayarlar sekmesine gidin'); }
 }
 
-async function syncFromSheets(silent) {
-  if (!DB.url) return;
-  setSyncStatus('loading', '⏳ Sheets\'e bağlanıyor...');
+// ═══════════════════════════════════════════════════
+// SENKRONİZASYON — tam, otomatik, her 60sn
+// ═══════════════════════════════════════════════════
+let _syncTimer = null;
+
+function manualSync() { doSync(false); }
+
+function startAutoSync() {
+  doSync(true);
+  clearInterval(_syncTimer);
+  _syncTimer = setInterval(() => doSync(true), 60000);
+}
+
+async function doSync(silent) {
+  if (!DB.url) { setSyncStatus('err','URL ayarlanmamış'); return; }
+  setDot('sync');
+  if (!silent) setSyncStatus('loading','⏳ Senkronize ediliyor...');
   try {
-    const res = await fetch(DB.url + '?action=getSessions', { mode: 'cors' });
-    if (!res.ok) throw new Error('Sunucu hatası: HTTP ' + res.status);
-    const json = await res.json();
-    if (!json.ok) throw new Error('Script hatası: ' + (json.err || 'Bilinmiyor'));
-    if (!Array.isArray(json.data)) throw new Error('getSessions tanımsız — Apps Script\'i güncelleyin');
+    const [cfgRes, sesRes] = await Promise.all([
+      fetch(DB.url + '?action=getConfig',   { mode:'cors', redirect:'follow' }),
+      fetch(DB.url + '?action=getSessions', { mode:'cors', redirect:'follow' })
+    ]);
+    if (!cfgRes.ok) throw new Error('getConfig HTTP ' + cfgRes.status);
+    if (!sesRes.ok) throw new Error('getSessions HTTP ' + sesRes.status);
+    const cfgJson = await cfgRes.json();
+    const sesJson = await sesRes.json();
+    if (!cfgJson.ok) throw new Error(cfgJson.err || 'getConfig başarısız — Apps Script güncellendi mi?');
+    if (!sesJson.ok) throw new Error(sesJson.err || 'getSessions başarısız');
 
-    let eklenen = 0, guncellenen = 0;
-    json.data.forEach(remote => {
-      if (!remote.id) return;
-      const local = DB.oturumlar.find(o => o.id === remote.id);
-      if (!local) {
-        DB.oturumlar.push(remote);
-        eklenen++;
-      } else if (remote.kapali && !local.kapali) {
-        local.kapali = true;
-        local.durum  = remote.durum;
-        local.hatali = remote.hatali || false;
-        guncellenen++;
-      }
-    });
+    const { kullanicilar: remoteK = [], depolar: remoteD = [] } = cfgJson.data || {};
+    const remoteSes = sesJson.data || [];
+    let degisti = false;
 
-    if (eklenen > 0 || guncellenen > 0) {
-      persist();
-      renderOturumlar();
+    // Depolar — çift yönlü
+    remoteD.forEach(d => { if (d && !DB.depolar.includes(d)) { DB.depolar.push(d); degisti = true; } });
+    DB.depolar.forEach(d => { if (!remoteD.includes(d)) sendSheets({ action:'saveDepo', ad:d }); });
+    if (degisti) localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
+
+    // Kullanıcılar — çift yönlü
+    if (remoteK.length > 0) {
+      remoteK.forEach(r => {
+        const l = DB.kullanicilar.find(k => k.id === r.id);
+        if (!l) { DB.kullanicilar.push(r); degisti = true; }
+        else if (l.sifre !== r.sifre || l.depo !== r.depo || l.rol !== r.rol) {
+          l.sifre = r.sifre; l.depo = r.depo; l.rol = r.rol; degisti = true;
+        }
+      });
     }
+    DB.kullanicilar.forEach(k => {
+      if (!remoteK.find(r => r.id === k.id)) sendSheets({ action:'saveUser', ...k });
+    });
+    if (degisti) persistUsers();
+
+    // Oturumlar
+    let eklenen = 0;
+    remoteSes.forEach(r => {
+      if (!r.id) return;
+      const l = DB.oturumlar.find(o => o.id === r.id);
+      if (!l) { DB.oturumlar.push(r); eklenen++; }
+      else if (r.kapali && !l.kapali) { l.kapali = r.kapali; l.durum = r.durum; l.hatali = r.hatali || false; degisti = true; }
+    });
+    if (eklenen > 0) degisti = true;
+
+    if (degisti) { persist(); renderOturumlar(); fillDepoSelect('nf-depo'); }
+
+    const saat = new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
     setDot('ok');
-    setSyncStatus('ok', `✓ Senkronize edildi — ${json.data.length} oturum alındı, ${eklenen} yeni eklendi`);
-    if (!silent) toast(`${eklenen} yeni oturum eklendi`, 'ok');
+    setSyncStatus('ok', `✓ ${saat} · ${remoteSes.length} oturum · ${remoteD.length} depo · ${remoteK.length} kullanıcı`);
+    if (!silent && eklenen > 0) toast(`${eklenen} yeni oturum senkronize edildi`, 'ok');
   } catch(e) {
     setDot('err');
-    setSyncStatus('err', '✗ Hata: ' + e.message);
-    if (!silent) toast('Senkronizasyon hatası: ' + e.message, 'err');
+    setSyncStatus('err', '✗ ' + e.message);
+    if (!silent) toast('Hata: ' + e.message, 'err');
+    setTimeout(() => doSync(true), 15000);
   }
 }
 
@@ -599,64 +643,10 @@ function setSyncStatus(type, msg) {
   const el = document.getElementById('syncStatus');
   if (!el) return;
   el.style.display = 'block';
-  if (type === 'ok')      { el.style.background='var(--green-soft)'; el.style.borderColor='rgba(74,222,128,.25)'; el.style.color='#4ade80'; }
-  else if (type === 'err'){ el.style.background='var(--red-soft)';   el.style.borderColor='rgba(248,113,113,.25)'; el.style.color='#f87171'; }
-  else                    { el.style.background='var(--blue-soft)';  el.style.borderColor='rgba(96,165,250,.25)';  el.style.color='#60a5fa'; }
+  if (type === 'ok')       { el.style.background='var(--green-soft)'; el.style.borderColor='rgba(74,222,128,.25)'; el.style.color='#4ade80'; }
+  else if (type === 'err') { el.style.background='var(--red-soft)';   el.style.borderColor='rgba(248,113,113,.25)'; el.style.color='#f87171'; }
+  else                     { el.style.background='var(--blue-soft)';  el.style.borderColor='rgba(96,165,250,.25)';  el.style.color='#60a5fa'; }
   el.textContent = msg;
-}
-
-function manualSync() { syncAll(false); }
-
-async function syncAll(silent) {
-  await syncConfig(silent);
-  await syncFromSheets(silent);
-}
-
-// Kullanıcı + depo senkronizasyonu
-async function syncConfig(silent) {
-  if (!DB.url) return;
-  try {
-    const res  = await fetch(DB.url + '?action=getConfig', { mode:'cors' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    if (!json.ok || !json.data) throw new Error(json.err || 'getConfig başarısız');
-
-    const { kullanicilar, depolar } = json.data;
-    let degisti = false;
-
-    // Depolar: Sheets öncelikli — eksikleri ekle
-    if (Array.isArray(depolar) && depolar.length > 0) {
-      depolar.forEach(d => {
-        if (d && !DB.depolar.includes(d)) { DB.depolar.push(d); degisti = true; }
-      });
-      if (degisti) {
-        localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
-        fillDepoSelect('nf-depo');
-      }
-    }
-
-    // Kullanıcılar: Sheets öncelikli — eksikleri ekle, şifre farklıysa güncelle
-    if (Array.isArray(kullanicilar) && kullanicilar.length > 0) {
-      kullanicilar.forEach(remote => {
-        const local = DB.kullanicilar.find(k => k.id === remote.id);
-        if (!local) {
-          DB.kullanicilar.push(remote);
-          degisti = true;
-        } else if (local.sifre !== remote.sifre || local.depo !== remote.depo || local.rol !== remote.rol) {
-          local.sifre = remote.sifre;
-          local.depo  = remote.depo;
-          local.rol   = remote.rol;
-          degisti = true;
-        }
-      });
-      if (degisti) persistUsers();
-    }
-
-    if (degisti && !silent) toast('Kullanıcı/depo senkronize edildi', 'info');
-    setSyncStatus('ok', `✓ Konfig senkronize — ${kullanicilar ? kullanicilar.length : 0} kullanıcı, ${depolar ? depolar.length : 0} depo`);
-  } catch(e) {
-    setSyncStatus('err', '✗ Konfig hatası: ' + e.message);
-  }
 }
 
 function sifreDegistir() {
