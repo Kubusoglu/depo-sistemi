@@ -140,24 +140,41 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
 
 /* ── SCAN ── */
 .scan-wrap{border-radius:var(--r8);overflow:hidden;background:#000;margin-bottom:8px}
-.res{border-radius:var(--r8);padding:14px;margin-bottom:10px;border:1px solid;animation:slin .2s ease}
+.res{border-radius:var(--r8);padding:12px;margin-bottom:8px;border:1px solid;animation:slin .2s ease}
 @keyframes slin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 .res.ok{background:var(--green-soft);border-color:rgba(74,222,128,.25)}
 .res.err{background:var(--red-soft);border-color:rgba(248,113,113,.25)}
 .res.warn{background:var(--warn-soft);border-color:rgba(251,191,36,.25)}
 .res.dup{background:var(--purple-soft);border-color:rgba(167,139,250,.25)}
-.res-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.res-ico{font-size:18px}
-.res-ttl{font-size:13px;font-weight:600}
-.res-flds{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.rf{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r6);padding:8px 10px}
+.res-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.res-ico{font-size:16px}
+.res-ttl{font-size:12px;font-weight:600}
+.res-flds{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.rf{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r6);padding:7px 9px}
 .rf-l{font-size:9px;color:var(--dim);letter-spacing:.6px;text-transform:uppercase;font-weight:500}
-.rf-v{font-size:12px;font-weight:600;font-family:var(--mono);margin-top:2px;word-break:break-all;color:var(--text)}
+.rf-v{font-size:11px;font-weight:600;font-family:var(--mono);margin-top:2px;word-break:break-all;color:var(--text)}
 .rf.full{grid-column:1/-1}
 
-/* ── ABAR ── */
-.abar{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:var(--r10);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.abar-end{font-size:11px;color:#f87171;font-weight:600;cursor:pointer;padding:5px 10px;border-radius:var(--r6);background:var(--red-soft);border:1px solid rgba(248,113,113,.25);white-space:nowrap}
+/* ── SCAN SESSION CARD ── */
+.sc-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r10);margin-bottom:10px;box-shadow:var(--shadow);overflow:hidden;transition:border-color .15s}
+.sc-card.devam{border-color:rgba(37,99,235,.45);box-shadow:0 0 0 1px rgba(37,99,235,.15),var(--shadow)}
+.sc-card.tamamlandi{border-color:rgba(22,163,74,.35)}
+.sc-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;position:relative;padding-left:18px}
+.sc-hdr::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.sc-card.kabul .sc-hdr::before{background:var(--blue)}
+.sc-card.cikis .sc-hdr::before{background:var(--red)}
+.sc-hdr:hover{background:rgba(255,255,255,.02)}
+.sc-hdr-info{flex:1;min-width:0}
+.sc-hdr-id{font-size:13px;font-weight:700;font-family:var(--mono)}
+.sc-hdr-meta{font-size:10px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-hdr-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.sc-chevron{font-size:11px;color:var(--dim);transition:transform .2s;line-height:1}
+.sc-card.open .sc-chevron{transform:rotate(180deg)}
+.sc-prog-mini{display:flex;align-items:center;gap:6px}
+.sc-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
+.sc-card.open .sc-body{display:block}
+.sc-prog{padding:10px 0 8px}
+.sc-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 
 /* ── RAPOR ── */
 .rblock{margin-bottom:16px}
@@ -333,49 +350,20 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
      OKUT
 ══════════════════════════════════════════ -->
 <div class="pg" id="pg-scan">
-  <div id="scanNoSes">
+  <div id="scanEmptyMsg" style="display:none">
     <div class="card">
-      <div class="ct">Aktif Oturum Yok</div>
-      <p class="sm dim" style="margin-bottom:10px">Mal kabul/çıkış başlatmak için önce bir oturum oluşturun veya seçin.</p>
+      <div class="ct">Açık Oturum Yok</div>
+      <p class="sm dim" style="margin-bottom:10px">Okutma yapmak için önce bir oturum oluşturun.</p>
       <button class="btn btn-p" onclick="goTab('oturumlar')">Oturumlara Git →</button>
     </div>
   </div>
-  <div id="scanHasSes" style="display:none">
-    <div class="abar" id="scanAbar">
-      <div>
-        <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">Aktif Oturum</div>
-        <div id="scanAbarTxt" style="font-size:13px;font-weight:700;margin-top:2px"></div>
-      </div>
-      <div class="abar-end" onclick="endSession()">Bitir ✕</div>
-    </div>
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <span class="sm dim">Paket İlerlemesi</span>
-        <span class="sm bold mono" id="progTxt">0 / 0</span>
-      </div>
-      <div class="prog-bg"><div class="prog-fg" id="progFg" style="width:0%"></div></div>
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap" id="progBadges"></div>
-    </div>
-    <div class="card" id="camCard" style="display:none">
-      <div class="ct">Kamera ile Okut</div>
-      <div class="scan-wrap"><div id="qr-reader" style="width:100%"></div></div>
-      <div style="text-align:center;font-size:10px;color:var(--dim);font-family:var(--mono);padding:6px">QR / DataMatrix çerçeve içine alın</div>
-      <button class="btn btn-g mt8" onclick="stopCam()">📷 Kamerayı Durdur</button>
-    </div>
-    <div class="card" id="manCard">
-      <div class="ct">Barkod Okut</div>
-      <div class="fr">
-        <input type="text" class="inp mono" id="bcIn" placeholder="Okutun veya yazın..." autocomplete="off" autocorrect="off" autocapitalize="off" style="font-size:12px">
-        <button class="btn btn-p btn-sm" onclick="doManual()">▶</button>
-      </div>
-      <button class="btn btn-g mt8" style="font-size:12px" onclick="startCam()">📷 Kamera Aç</button>
-    </div>
-    <div id="resArea"></div>
-    <div class="card">
-      <div class="ct">Ürün Durumu</div>
-      <div id="urunDurum"></div>
-    </div>
+  <!-- kamera konteyneri — gizli, JS tarafından doğru karta taşınır -->
+  <div id="camContainer" style="display:none;margin-bottom:8px">
+    <div class="scan-wrap"><div id="qr-reader" style="width:100%"></div></div>
+    <div style="text-align:center;font-size:10px;color:var(--dim);font-family:var(--mono);padding:5px">QR / DataMatrix çerçeve içine alın</div>
+    <button class="btn btn-g btn-sm mt8" onclick="stopCam()" style="width:100%">📷 Kamerayı Durdur</button>
   </div>
+  <div id="scanList"></div>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -483,7 +471,10 @@ const DB = {
   cols:      JSON.parse(localStorage.getItem('d3_cols') || '{"kod":4,"ad":5,"miktar":7,"detay":6,"sas":0,"musteri":3}'),
   kullanicilar: JSON.parse(localStorage.getItem('d3_users') || '[{"id":"admin","ad":"admin","sifre":"admin1234","depo":"*","rol":"admin"}]'),
   aktifKullanici: JSON.parse(localStorage.getItem('d3_aktif_k') || 'null'),
-  cam: false, cool: false
+  // Scan state (session-level, not persisted)
+  scanExpanded: new Set(), // hangi kartlar açık
+  camSesId: null,          // kamera hangi oturuma bağlı
+  cool: false
 };
 
 let parsedUrunler = [];
@@ -915,8 +906,8 @@ function isareteHatali(id) {
 function activateAndScan(id) {
   DB.aktifId = id;
   const o = DB.oturumlar.find(x => x.id === id);
-  if (o && o.durum === 'beklemede') { o.durum = 'devam'; }
-  persist();
+  if (o && o.durum === 'beklemede') { o.durum = 'devam'; persist(); }
+  DB.scanExpanded.add(id);
   goTab('scan');
 }
 
@@ -931,70 +922,144 @@ function deleteSes(id) {
   toast('Oturum silindi', 'info');
 }
 
-function endSession() {
-  if (!confirm('Oturumu kapatmak istiyor musunuz?')) return;
-  const o = aktif();
-  if (o) {
-    const st = getSesStats(o);
-    o.durum = st.eksik===0 && st.fazla===0 ? 'tamamlandi' : 'sorunlu';
-    o.kapali = true;
-    o.kapatmaTarih = new Date().toISOString();
-    persist();
-    sendSheets({ action:'closeSession', oturumId:o.id, durum:o.durum, tamUrun:st.tam, eksikUrun:st.eksik, fazlaUrun:st.fazla, toplamPkt:st.toplamPkt, okutulan:st.okutulan });
-  }
-  stopCam();
-  DB.aktifId = null;
+function endSession(id) {
+  const o = DB.oturumlar.find(x => x.id === id);
+  if (!o) return;
+  if (!confirm(`"${id}" oturumunu kapatmak istiyor musunuz?`)) return;
+  const st = getSesStats(o);
+  o.durum = st.eksik===0 && st.fazla===0 ? 'tamamlandi' : 'sorunlu';
+  o.kapali = true;
+  o.kapatmaTarih = new Date().toISOString();
   persist();
+  sendSheets({ action:'closeSession', oturumId:o.id, durum:o.durum, tamUrun:st.tam, eksikUrun:st.eksik, fazlaUrun:st.fazla, toplamPkt:st.toplamPkt, okutulan:st.okutulan });
+  if (DB.camSesId === id) stopCam();
+  DB.scanExpanded.delete(id);
+  if (DB.aktifId === id) DB.aktifId = null;
+  localStorage.setItem('d3_aktif', DB.aktifId || '');
   renderScanPage();
   renderOturumlar();
   toast('Oturum kapatıldı', 'info');
 }
 
 // ═══════════════════════════════════════════════════
-// SCAN PAGE
+// SCAN PAGE — çok oturumlu kart düzeni
 // ═══════════════════════════════════════════════════
 function renderScanPage() {
-  const o = aktif();
-  document.getElementById('scanNoSes').style.display  = o ? 'none'  : 'block';
-  document.getElementById('scanHasSes').style.display = o ? 'block' : 'none';
-  if (!o) return;
-  const tipLabel = o.tip==='kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
-  document.getElementById('scanAbarTxt').innerHTML =
-    `<span class="b ${o.tip==='kabul'?'bc':'br'}">${tipLabel}</span> <span class="mono" style="font-size:12px">${o.id}</span> · ${o.depo}`;
-  renderProgress(o);
-  renderUrunDurum(o);
-  setTimeout(() => { const inp=document.getElementById('bcIn'); if(inp&&!DB.cam) inp.focus(); }, 200);
+  const liste = oturumFiltre().filter(o => !o.kapali && !o.hatali);
+  const emptyEl = document.getElementById('scanEmptyMsg');
+  const listEl  = document.getElementById('scanList');
+
+  emptyEl.style.display = liste.length === 0 ? 'block' : 'none';
+  if (liste.length === 0) { listEl.innerHTML = ''; return; }
+
+  listEl.innerHTML = liste.map(o => buildScanCard(o)).join('');
+
+  // Kamera konteynerini açık olan karta yerleştir
+  if (DB.camSesId) {
+    const slot = document.getElementById('camSlot-'+DB.camSesId);
+    if (slot) {
+      const cam = document.getElementById('camContainer');
+      cam.style.display = 'block';
+      slot.appendChild(cam);
+    }
+  }
 }
 
-function renderProgress(o) {
-  const st = getSesStats(o);
-  const pct = st.toplamPkt > 0 ? Math.min(100,Math.round(st.okutulan/st.toplamPkt*100)) : 0;
-  document.getElementById('progTxt').textContent = `${st.okutulan} / ${st.toplamPkt} paket`;
-  const fg = document.getElementById('progFg');
-  fg.style.width = pct+'%';
-  fg.style.background = pct>=100 ? '#22c55e' : 'var(--blue)';
-  document.getElementById('progBadges').innerHTML =
-    `<span class="b bg">✓ Tam: ${st.tam}</span>
-     <span class="b bw">⚡ Eksik: ${st.eksik}</span>
-     ${st.fazla>0?`<span class="b bp">+Fazla: ${st.fazla}</span>`:''}
-     <span class="b bb">${pct}%</span>`;
+function buildScanCard(o) {
+  const st     = getSesStats(o);
+  const pct    = st.toplamPkt > 0 ? Math.min(100, Math.round(st.okutulan/st.toplamPkt*100)) : 0;
+  const isOpen = DB.scanExpanded.has(o.id);
+  const hasCam = DB.camSesId === o.id;
+  const progColor = pct>=100 ? '#22c55e' : (o.tip==='kabul' ? 'var(--blue)' : 'var(--red)');
+
+  // Durum badge + butonlar
+  let durumBadge = '';
+  if (o.durum==='beklemede') durumBadge = '<span class="b bw">⏳ BEKLENİYOR</span>';
+  else if (o.durum==='devam') durumBadge = '<span class="b bc">▶ DEVAM</span>';
+  else if (o.durum==='tamamlandi') durumBadge = '<span class="b bg">✓ TAMAMLANDI</span>';
+  else if (o.durum==='sorunlu') durumBadge = '<span class="b br">⚠ SORUNLU</span>';
+
+  // Aksiyon butonları
+  let btns = '';
+  if (o.durum === 'beklemede') {
+    btns += `<button class="btn btn-p btn-sm" onclick="startScanSes('${o.id}')">▶ Başlat</button>`;
+  } else {
+    btns += `<button class="btn btn-sm" style="background:rgba(37,99,235,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.25)" onclick="toggleExpand('${o.id}')">
+      ${isOpen ? '⏸ Durdur' : '▶ Devam Et'}
+    </button>`;
+  }
+  btns += `<button class="btn btn-sm" style="background:rgba(249,115,22,.1);color:#fb923c;border:1px solid rgba(249,115,22,.25)" onclick="isareteHatali('${o.id}')">⚠ Hatalı</button>`;
+  btns += `<button class="btn btn-r btn-sm" onclick="endSession('${o.id}')">⏹ Bitir</button>`;
+
+  // Ürün durumu HTML
+  const urunHtml = buildUrunDurum(o);
+
+  return `<div class="sc-card ${o.tip} ${o.durum} ${isOpen?'open':''}" id="sc-${o.id}">
+    <div class="sc-hdr" onclick="toggleExpand('${o.id}')">
+      <div class="sc-hdr-info">
+        <div class="sc-hdr-id">${o.id}</div>
+        <div class="sc-hdr-meta">${o.depo} · ${o.firma||'—'} · ${o.plaka||'—'} · ${o.sorumlu}</div>
+      </div>
+      <div class="sc-hdr-right">
+        ${durumBadge}
+        <div class="sc-prog-mini">
+          <span style="font-size:10px;font-family:var(--mono);color:var(--dim)">${st.okutulan}/${st.toplamPkt}</span>
+        </div>
+        <span class="sc-chevron">▼</span>
+      </div>
+    </div>
+    ${isOpen ? `
+    <div class="sc-body">
+      <!-- Progress -->
+      <div class="sc-prog">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:11px;color:var(--dim)">Paket İlerlemesi</span>
+          <span style="font-size:11px;font-weight:700;font-family:var(--mono)">${st.okutulan} / ${st.toplamPkt} paket &nbsp; ${pct}%</span>
+        </div>
+        <div class="prog-bg"><div class="prog-fg" style="width:${pct}%;background:${progColor}"></div></div>
+        <div style="display:flex;gap:5px;margin-top:7px;flex-wrap:wrap">
+          <span class="b bg">✓ Tam: ${st.tam}</span>
+          <span class="b bw">⚡ Eksik: ${st.eksik}</span>
+          ${st.fazla>0?`<span class="b bp">+Fazla: ${st.fazla}</span>`:''}
+        </div>
+      </div>
+      <!-- Son sonuç -->
+      <div id="res-${o.id}"></div>
+      <!-- Barkod input -->
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <input type="text" class="inp mono" id="bc-${o.id}"
+          placeholder="Barkod okutun veya yazın..."
+          autocomplete="off" autocorrect="off" autocapitalize="off"
+          style="font-size:12px"
+          onkeydown="if(event.key==='Enter') doManual('${o.id}')">
+        <button class="btn btn-p btn-sm" onclick="doManual('${o.id}')">▶</button>
+      </div>
+      <!-- Kamera slot -->
+      <div id="camSlot-${o.id}">
+        ${hasCam ? '' : `<button class="btn btn-g btn-sm" style="width:100%;margin-bottom:8px" onclick="startCam('${o.id}')">📷 Kamera Aç</button>`}
+      </div>
+      <!-- Aksiyon butonları -->
+      <div class="sc-btns">${btns}</div>
+      <!-- Ürün durumu -->
+      <div style="margin-top:10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);margin-bottom:8px">Ürün Durumu</div>
+      ${urunHtml}
+    </div>` : ''}
+  </div>`;
 }
 
-function renderUrunDurum(o) {
-  const c = document.getElementById('urunDurum');
-  if (!o.urunler.length) { c.innerHTML='<div class="empty"><div>Ürün yok</div></div>'; return; }
+function buildUrunDurum(o) {
   let html = '';
   o.urunler.forEach(u => {
     const tp  = u.toplamPaket || 1;
     const oks = o.hareketler.filter(h => h.urunKodu===u.kod);
-    const siralar = new Set(oks.map(h => h.paketSira));
+    const sir = new Set(oks.map(h => h.paketSira));
     const tam = isUrunTam(o,u);
     let cls,ico;
-    if (tam)             { cls='tam';   ico='✓'; }
-    else if (!oks.length){ cls='eksik'; ico='○'; }
-    else                 { cls='kismi'; ico='◑'; }
+    if (tam)              { cls='tam';   ico='✓'; }
+    else if (!oks.length) { cls='eksik'; ico='○'; }
+    else                  { cls='kismi'; ico='◑'; }
     let pkts='';
-    for (let i=1;i<=tp;i++) pkts+=`<div class="pkb ${siralar.has(i)?'ok':'no'}">${i}</div>`;
+    for (let i=1;i<=tp;i++) pkts+=`<div class="pkb ${sir.has(i)?'ok':'no'}">${i}</div>`;
     html+=`<div class="urow ${cls}">
       <div class="urow-ico">${ico}</div>
       <div class="urow-body">
@@ -1004,7 +1069,7 @@ function renderUrunDurum(o) {
       </div>
       <div class="urow-cnt">
         <div class="urow-cnt-n" style="color:${tam?'#4ade80':oks.length?'#fbbf24':'#f87171'}">${oks.length}/${tp}</div>
-        <div class="urow-cnt-l">${cls.toUpperCase()}</div>
+        <div class="urow-cnt-l">${cls}</div>
       </div>
     </div>`;
   });
@@ -1022,31 +1087,74 @@ function renderUrunDurum(o) {
       </div>
     </div>`;
   });
-  c.innerHTML = html;
+  return html || '<div style="font-size:12px;color:var(--dim);padding:8px 0">Henüz okutma yok</div>';
+}
+
+function toggleExpand(id) {
+  if (DB.scanExpanded.has(id)) {
+    DB.scanExpanded.delete(id);
+    if (DB.camSesId === id) stopCam();
+  } else {
+    DB.scanExpanded.add(id);
+    const o = DB.oturumlar.find(x=>x.id===id);
+    if (o && o.durum==='beklemede') { o.durum='devam'; persist(); }
+  }
+  renderScanPage();
+  if (DB.scanExpanded.has(id)) {
+    setTimeout(()=>{ const inp=document.getElementById('bc-'+id); if(inp) inp.focus(); },150);
+  }
+}
+
+function startScanSes(id) {
+  const o = DB.oturumlar.find(x=>x.id===id);
+  if (!o) return;
+  o.durum = 'devam';
+  persist();
+  DB.scanExpanded.add(id);
+  renderScanPage();
+  renderOturumlar();
+  setTimeout(()=>{ const inp=document.getElementById('bc-'+id); if(inp) inp.focus(); },150);
+  toast(`${id} başlatıldı`, 'ok');
+}
+
+// Scan sayfasındaki tek oturum için kart güncelle (full re-render yerine)
+function refreshScanCard(id) {
+  const card = document.getElementById('sc-'+id);
+  if (!card) { renderScanPage(); return; }
+  const o = DB.oturumlar.find(x=>x.id===id);
+  if (!o) { renderScanPage(); return; }
+  card.outerHTML = buildScanCard(o);
+  // Kamera slotunu yeniden yerleştir
+  if (DB.camSesId === id) {
+    const slot = document.getElementById('camSlot-'+id);
+    if (slot) { const cam=document.getElementById('camContainer'); cam.style.display='block'; slot.appendChild(cam); }
+  }
 }
 
 // ═══════════════════════════════════════════════════
 // BARKOD
 // ═══════════════════════════════════════════════════
-function doManual() {
-  const v = document.getElementById('bcIn').value.trim();
+function doManual(sesId) {
+  const inp = document.getElementById('bc-'+sesId);
+  if (!inp) return;
+  const v = inp.value.trim();
   if (!v) return;
-  doBarcode(v);
-  document.getElementById('bcIn').value = '';
-  document.getElementById('bcIn').focus();
+  doBarcode(sesId, v);
+  inp.value = '';
+  inp.focus();
 }
 
-function doBarcode(raw) {
-  const o = aktif();
-  if (!o) { toast('Oturum seçin!','err'); return; }
+function doBarcode(sesId, raw) {
+  const o = DB.oturumlar.find(x=>x.id===sesId);
+  if (!o) { toast('Oturum bulunamadı!','err'); return; }
   const p = parseGS1(raw);
-  if (p.err) { showRes('err','⚠️','Parse Hatası',p.err,{}); feedback('err'); return; }
+  if (p.err) { showRes(sesId,'err','⚠️','Parse Hatası',p.err,{}); feedback('err'); return; }
 
   if (p.seriNo) {
     const once = o.hareketler.find(h => h.seriNo===p.seriNo);
     if (once) {
       const t = new Date(once.ts).toLocaleTimeString('tr-TR');
-      showRes('dup','🔁','Mükerrer Okutma!',`Bu paket ${t} saatinde okutuldu.`,{'Ürün':p.urunKodu,'Seri':p.seriNo});
+      showRes(sesId,'dup','🔁','Mükerrer Okutma!',`Bu paket ${t} saatinde okutuldu.`,{'Ürün':p.urunKodu,'Seri':p.seriNo});
       feedback('warn'); toast('⚠ Mükerrer okutma!','warn'); return;
     }
   }
@@ -1065,28 +1173,36 @@ function doBarcode(raw) {
   persist();
 
   const tamMi = listeUrun ? isUrunTam(o,listeUrun) : false;
-  if (!listede) {
-    showRes('warn','⚡','Listede Olmayan Ürün!','Bu ürün beklenen listede yok.',{'Ürün Kodu':p.urunKodu,'Paket':`${p.paketSira}/${p.toplamPaket}`,'Seri':p.seriNo});
-    toast('⚡ Listede olmayan ürün!','warn');
-  } else if (tamMi) {
-    showRes('ok','✅',`${listeUrun.ad||p.urunKodu} — Tamamlandı!`,null,{'Ürün Kodu':p.urunKodu,'Paket':`${p.paketSira}/${p.toplamPaket}`,'Seri':p.seriNo,'SAS':p.sas});
-    toast('✅ Ürün tamamlandı!','ok');
-  } else {
-    showRes('ok','📦','Paket Kabul Edildi',`${p.paketSira}/${p.toplamPaket} paket okutuldu`,{'Ürün Kodu':p.urunKodu,'Ürün':listeUrun.ad,'Seri':p.seriNo,'SAS':p.sas});
-  }
 
-  feedback(listede?'ok':'warn');
+  // Toast + ses geri bildirimi
+  if (!listede)    { toast('⚡ Listede olmayan ürün!','warn'); feedback('warn'); }
+  else if (tamMi)  { toast(`✅ ${listeUrun.ad||p.urunKodu} tamamlandı!`,'ok'); feedback('ok'); }
+  else             { feedback('ok'); }
+
   if (DB.url) sendSheets({action:'addHareket', oturumId:o.id, depo:o.depo, sorumlu:o.sorumlu, ...h});
-  renderProgress(o);
-  renderUrunDurum(o);
+
+  // Kartı yeniden çiz (ürün durumu + progress güncellenir)
+  refreshScanCard(sesId);
+
+  // Sonuç kutusunu yaz (kart yeniden çizildikten sonra)
+  const resType = !listede ? 'warn' : 'ok';
+  const resIco  = !listede ? '⚡' : (tamMi ? '✅' : '📦');
+  const resTtl  = !listede ? 'Listede Olmayan Ürün!'
+                           : (tamMi ? `${listeUrun.ad||p.urunKodu} — Tamamlandı!` : 'Paket Kabul Edildi');
+  const resMsg  = !listede ? 'Bu ürün beklenen listede yok.'
+                           : (tamMi ? null : `${p.paketSira}/${p.toplamPaket} paket okutuldu`);
+  showRes(sesId, resType, resIco, resTtl, resMsg,
+    {'Ürün Kodu':p.urunKodu,'Paket':`${p.paketSira}/${p.toplamPaket}`,'Seri':p.seriNo||'—','SAS':p.sas||'—'});
 }
 
-function showRes(tip,ico,ttl,msg,fields) {
+function showRes(sesId, tip, ico, ttl, msg, fields) {
+  const el = document.getElementById('res-'+sesId);
+  if (!el) return;
   const fhtml = Object.entries(fields).map(([k,v]) =>
     `<div class="rf"><div class="rf-l">${k}</div><div class="rf-v">${v||'—'}</div></div>`).join('');
-  document.getElementById('resArea').innerHTML = `<div class="res ${tip}">
+  el.innerHTML = `<div class="res ${tip}">
     <div class="res-hdr"><span class="res-ico">${ico}</span><span class="res-ttl">${ttl}</span></div>
-    ${msg?`<div class="sm dim" style="margin-bottom:8px">${msg}</div>`:''}
+    ${msg?`<div style="font-size:11px;color:var(--dim2);margin-bottom:7px">${msg}</div>`:''}
     <div class="res-flds">${fhtml}</div>
   </div>`;
 }
@@ -1130,21 +1246,39 @@ function getFazla(o) {
 // KAMERA
 // ═══════════════════════════════════════════════════
 let qrSc = null;
-function startCam() {
-  if (!aktif()) { toast('Oturum seçin!','err'); return; }
-  document.getElementById('camCard').style.display = 'block';
-  document.getElementById('manCard').style.display = 'none';
-  DB.cam = true;
+function startCam(sesId) {
+  if (DB.camSesId && DB.camSesId !== sesId) stopCam();
+  DB.camSesId = sesId;
+  // Kamera konteynerini bu kartın slotuna taşı
+  const slot = document.getElementById('camSlot-'+sesId);
+  if (!slot) return;
+  const cam = document.getElementById('camContainer');
+  cam.style.display = 'block';
+  slot.innerHTML = '';
+  slot.appendChild(cam);
+  // "Kamera Aç" butonunu gizle
   qrSc = new Html5Qrcode('qr-reader');
-  qrSc.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:240},supportedScanTypes:[0,1]},
-    txt => { if(DB.cool) return; DB.cool=true; setTimeout(()=>{DB.cool=false;},2500); doBarcode(txt); },
-    ()=>{}).catch(()=>{ toast('Kamera açılamadı','err'); stopCam(); });
+  qrSc.start(
+    {facingMode:'environment'},
+    {fps:10, qrbox:{width:240,height:240}, supportedScanTypes:[0,1]},
+    txt => {
+      if (DB.cool) return;
+      DB.cool = true;
+      setTimeout(()=>{ DB.cool=false; }, 2500);
+      doBarcode(DB.camSesId, txt);
+    },
+    ()=>{}
+  ).catch(()=>{ toast('Kamera açılamadı','err'); stopCam(); });
 }
 function stopCam() {
   if (qrSc) { qrSc.stop().catch(()=>{}); qrSc=null; }
-  DB.cam = false;
-  document.getElementById('camCard').style.display = 'none';
-  document.getElementById('manCard').style.display = aktif() ? 'block' : 'none';
+  const cam = document.getElementById('camContainer');
+  cam.style.display = 'none';
+  // Konteyneri body'ye geri taşı (DOM'dan kopmadan)
+  document.getElementById('appWrap').appendChild(cam);
+  DB.camSesId = null;
+  // Scan kartını güncelle (kamera butonunu geri getir)
+  renderScanPage();
 }
 
 // ═══════════════════════════════════════════════════
@@ -1422,13 +1556,14 @@ function goTab(name) {
 }
 
 // ═══════════════════════════════════════════════════
-// USB BARKOD
+// USB BARKOD — aktif karta Enter ile gönder
 // ═══════════════════════════════════════════════════
 document.addEventListener('keydown', e => {
-  if(e.key==='Enter' && document.getElementById('bcIn')===document.activeElement) doManual();
-});
-document.getElementById('bcIn').addEventListener('blur', () => {
-  if(aktif()&&!DB.cam) setTimeout(()=>document.getElementById('bcIn').focus(),100);
+  if (e.key !== 'Enter') return;
+  const active = document.activeElement;
+  if (!active) return;
+  const m = active.id && active.id.startsWith('bc-') ? active.id.slice(3) : null;
+  if (m) doManual(m);
 });
 
 // ═══════════════════════════════════════════════════
