@@ -455,6 +455,20 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
     <div class="ig"><label class="lbl">Yeni Şifre</label><input class="inp" type="password" id="yeniSifre"></div>
     <button class="btn btn-g btn-sm" onclick="sifreDegistir()">Güncelle</button>
   </div>
+  <div class="card">
+    <div class="ct">Veri Aktarımı</div>
+    <p class="sm dim" style="margin-bottom:10px">Oturumlar tarayıcıya özgü saklanır. Başka cihazda görmek için dışa aktarıp o cihazda içe aktarın.</p>
+    <div class="fr">
+      <button class="btn btn-g btn-sm" onclick="exportData()">⬇ Dışa Aktar (.json)</button>
+      <label class="btn btn-g btn-sm" style="cursor:pointer;justify-content:center">
+        ⬆ İçe Aktar
+        <input type="file" accept=".json" style="display:none" onchange="importData(this)">
+      </label>
+    </div>
+    <div style="margin-top:10px;padding:8px 10px;background:var(--s2);border-radius:var(--r6);border:1px solid var(--border);font-size:11px;color:var(--dim)">
+      ℹ️ Gerçek zamanlı senkronizasyon için Apps Script'inize <code style="background:rgba(255,255,255,.08);padding:1px 4px;border-radius:3px">getSessions</code> aksiyonu eklemeniz gerekir.
+    </div>
+  </div>
 </div>
 
 </div><!-- /appWrap -->
@@ -1557,6 +1571,58 @@ function updateQDot() {
 
 function sqRetryNow() {
   SQ.busy=false; sqFlush(); toast('Yeniden deneniyor...','info');
+}
+
+// ═══════════════════════════════════════════════════
+// VERİ AKTARIMI
+// ═══════════════════════════════════════════════════
+function exportData() {
+  const payload = {
+    v: 2,
+    ts: new Date().toISOString(),
+    oturumlar: DB.oturumlar,
+    depolar: DB.depolar
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `depo-yedek-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Dışa aktarıldı', 'ok');
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.oturumlar) { toast('Geçersiz dosya', 'err'); return; }
+
+      const yeni    = data.oturumlar.filter(o => !DB.oturumlar.find(x => x.id === o.id));
+      const guncell = data.oturumlar.filter(o =>  DB.oturumlar.find(x => x.id === o.id));
+
+      // Yenileri ekle, mevcut olanlara dokunma
+      DB.oturumlar.push(...yeni);
+
+      // Depolar varsa birleştir
+      if (data.depolar) {
+        data.depolar.forEach(d => { if (!DB.depolar.includes(d)) DB.depolar.push(d); });
+        localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
+      }
+
+      persist();
+      renderOturumlar();
+      toast(`${yeni.length} yeni oturum eklendi, ${guncell.length} zaten mevcut`, 'ok');
+    } catch(err) {
+      toast('Dosya okunamadı: ' + err.message, 'err');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
 }
 
 // ═══════════════════════════════════════════════════
