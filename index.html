@@ -686,6 +686,21 @@ function parseOnizleme() {
   const satirlar = raw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
   parsedUrunler = [];
 
+  // TEŞHİS: ilk 3 satırı ve sütun değerlerini göster
+  const ilk3 = satirlar.slice(0,3).map((s,i) => {
+    const cols = s.split('\t');
+    return `<div style="margin-bottom:6px;font-size:10px">
+      <div style="color:var(--warn);margin-bottom:2px">Satır ${i+1} (${cols.length} sütun):</div>
+      ${cols.map((v,ci)=>`<div style="padding:1px 0"><span style="color:var(--dim);width:20px;display:inline-block">[${ci}]</span> <span class="mono">${v||'<boş>'}</span>${ci===c.kod?' ← KOD':ci===c.ad?' ← AD':ci===c.miktar?' ← MİKTAR':ci===c.musteri?' ← MÜŞTERİ':''}</div>`).join('')}
+    </div>`;
+  }).join('<hr style="border-color:var(--border);margin:6px 0">');
+  document.getElementById('onizlemeIcerik').innerHTML = `<div style="background:rgba(217,119,6,.1);border:1px solid rgba(217,119,6,.3);border-radius:6px;padding:10px;margin-bottom:10px">
+    <div style="font-size:10px;font-weight:700;color:var(--warn);margin-bottom:8px">📊 TEŞHİS — Toplam ${satirlar.length} satır okundu</div>
+    ${ilk3}
+    <div style="font-size:10px;color:var(--dim);margin-top:8px">Sütun indeksleri yanlışsa Ayarlar → Sütun Eşleştirme'den düzeltin</div>
+  </div>`;
+  document.getElementById('onizleme').style.display = 'block';
+
   satirlar.forEach(satir => {
     const cols = satir.split('\t');
     if (cols.length < 3) return;
