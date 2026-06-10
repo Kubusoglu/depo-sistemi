@@ -553,7 +553,7 @@ function startApp() {
 
   fillDepoSelect('nf-depo');
   renderOturumlar();
-  if (DB.url) { setDot('ok'); sqFlush(); syncFromSheets(); }
+  if (DB.url) { setDot('ok'); sqFlush(); syncAll(); }
 }
 
 async function syncFromSheets(silent) {
@@ -605,7 +605,59 @@ function setSyncStatus(type, msg) {
   el.textContent = msg;
 }
 
-function manualSync() { syncFromSheets(false); }
+function manualSync() { syncAll(false); }
+
+async function syncAll(silent) {
+  await syncConfig(silent);
+  await syncFromSheets(silent);
+}
+
+// Kullanıcı + depo senkronizasyonu
+async function syncConfig(silent) {
+  if (!DB.url) return;
+  try {
+    const res  = await fetch(DB.url + '?action=getConfig', { mode:'cors' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (!json.ok || !json.data) throw new Error(json.err || 'getConfig başarısız');
+
+    const { kullanicilar, depolar } = json.data;
+    let degisti = false;
+
+    // Depolar: Sheets öncelikli — eksikleri ekle
+    if (Array.isArray(depolar) && depolar.length > 0) {
+      depolar.forEach(d => {
+        if (d && !DB.depolar.includes(d)) { DB.depolar.push(d); degisti = true; }
+      });
+      if (degisti) {
+        localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
+        fillDepoSelect('nf-depo');
+      }
+    }
+
+    // Kullanıcılar: Sheets öncelikli — eksikleri ekle, şifre farklıysa güncelle
+    if (Array.isArray(kullanicilar) && kullanicilar.length > 0) {
+      kullanicilar.forEach(remote => {
+        const local = DB.kullanicilar.find(k => k.id === remote.id);
+        if (!local) {
+          DB.kullanicilar.push(remote);
+          degisti = true;
+        } else if (local.sifre !== remote.sifre || local.depo !== remote.depo || local.rol !== remote.rol) {
+          local.sifre = remote.sifre;
+          local.depo  = remote.depo;
+          local.rol   = remote.rol;
+          degisti = true;
+        }
+      });
+      if (degisti) persistUsers();
+    }
+
+    if (degisti && !silent) toast('Kullanıcı/depo senkronize edildi', 'info');
+    setSyncStatus('ok', `✓ Konfig senkronize — ${kullanicilar ? kullanicilar.length : 0} kullanıcı, ${depolar ? depolar.length : 0} depo`);
+  } catch(e) {
+    setSyncStatus('err', '✗ Konfig hatası: ' + e.message);
+  }
+}
 
 function sifreDegistir() {
   const eski  = document.getElementById('eskiSifre').value;
@@ -630,12 +682,14 @@ function addUser() {
   const rol   = document.getElementById('yRol').value;
   if (!ad || !sifre || !depo) { toast('Tüm alanları doldurun', 'err'); return; }
   if (DB.kullanicilar.find(u => u.ad === ad)) { toast('Bu kullanıcı adı zaten var', 'err'); return; }
-  DB.kullanicilar.push({ id: Date.now().toString(), ad, sifre, depo, rol });
+  const k = { id: Date.now().toString(), ad, sifre, depo, rol };
+  DB.kullanicilar.push(k);
   persistUsers();
   document.getElementById('yAd').value = '';
   document.getElementById('ySifre').value = '';
   renderYonetim();
   toast(`${ad} eklendi`, 'ok');
+  sendSheets({ action:'saveUser', ...k });
 }
 
 function removeUser(id) {
@@ -645,6 +699,7 @@ function removeUser(id) {
   persistUsers();
   renderYonetim();
   toast('Kullanıcı silindi', 'info');
+  sendSheets({ action:'deleteUser', id });
 }
 
 // ═══════════════════════════════════════════════════
@@ -1545,6 +1600,7 @@ function addDepo() {
   fillDepoSelect('nf-depo');
   fillDepoSelectAdmin('yDepo');
   toast(`${v} eklendi`,'ok');
+  sendSheets({ action:'saveDepo', ad:v });
 }
 
 function renderDepoList() {
@@ -1556,11 +1612,13 @@ function renderDepoList() {
 }
 
 function rmDepo(i) {
-  if (!confirm(`"${DB.depolar[i]}" deposunu silmek istiyor musunuz?`)) return;
+  const ad = DB.depolar[i];
+  if (!confirm(`"${ad}" deposunu silmek istiyor musunuz?`)) return;
   DB.depolar.splice(i,1);
   localStorage.setItem('d3_depolar',JSON.stringify(DB.depolar));
   renderDepoList();
   fillDepoSelect('nf-depo');
+  sendSheets({ action:'deleteDepo', ad });
 }
 
 function fillDepoSelect(id) {
