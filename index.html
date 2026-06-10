@@ -9,862 +9,920 @@
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
-:root {
-  --bg:#0a0a0f; --s1:#13131a; --s2:#1c1c28; --border:#2a2a3d;
-  --cyan:#00e5ff; --red:#ff3d71; --purple:#a855f7; --green:#00e096; --warn:#ffaa00;
-  --text:#e8e8f0; --dim:#6b6b8a;
-  --mono:'Space Mono',monospace; --main:'Syne',sans-serif;
+:root{
+  --bg:#0a0a0f;--s1:#13131a;--s2:#1c1c28;--s3:#222230;
+  --border:#2a2a3d;--border2:#3a3a55;
+  --cyan:#00e5ff;--red:#ff3d71;--purple:#a855f7;
+  --green:#00e096;--warn:#ffaa00;--blue:#4488ff;
+  --text:#e8e8f0;--dim:#6b6b8a;--dim2:#9090aa;
+  --mono:'Space Mono',monospace;--main:'Syne',sans-serif;
+  --r8:8px;--r12:12px;--r16:16px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--text);font-family:var(--main);min-height:100vh;overflow-x:hidden}
 
 /* HEADER */
-.hdr{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-.hdr-logo{font-size:17px;font-weight:800;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hdr-right{display:flex;align-items:center;gap:10px}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--dim);transition:all .3s}
-.dot.ok{background:var(--green);box-shadow:0 0 8px var(--green)}
-.dot.err{background:var(--red);box-shadow:0 0 8px var(--red)}
-.hdr-stat{font-size:10px;font-family:var(--mono);color:var(--dim)}
+.hdr{position:sticky;top:0;z-index:200;background:rgba(10,10,15,.97);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:16px;font-weight:800;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.3px}
+.conn{display:flex;align-items:center;gap:6px;font-size:10px;font-family:var(--mono);color:var(--dim)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--dim)}
+.dot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot.err{background:var(--red);box-shadow:0 0 6px var(--red)}
 
 /* TABS */
-.tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:49px;z-index:199}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex:1;min-width:72px;padding:12px 6px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab{flex:1;min-width:68px;padding:11px 4px;text-align:center;font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;text-transform:uppercase}
 .tab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
-.tab i{font-size:16px;display:block;margin-bottom:3px;font-style:normal}
+.tab i{font-size:15px;display:block;margin-bottom:2px;font-style:normal}
 
-/* PAGES */
-.pg{display:none;padding:14px;max-width:640px;margin:0 auto}
+/* PAGE */
+.pg{display:none;padding:12px;max-width:700px;margin:0 auto;padding-bottom:40px}
 .pg.on{display:block}
 
 /* CARD */
-.card{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
-.card-ttl{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.card-ttl::after{content:'';flex:1;height:1px;background:var(--border)}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r16);padding:14px;margin-bottom:10px}
+.ct{font-size:9px;font-weight:700;letter-spacing:1.8px;color:var(--dim);text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:8px}
+.ct::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* INPUTS */
-.ig{margin-bottom:10px}
-.lbl{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-bottom:5px;display:block}
-.inp{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-family:var(--main);font-size:14px;outline:none;transition:border-color .2s;-webkit-appearance:none}
+/* FORM */
+.ig{margin-bottom:9px}
+.lbl{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;display:block}
+.inp{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:var(--r8);padding:10px 12px;color:var(--text);font-family:var(--main);font-size:14px;outline:none;transition:border-color .2s;-webkit-appearance:none}
 .inp:focus{border-color:var(--cyan)}
 select.inp{cursor:pointer}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mono);line-height:1.5}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 
 /* BUTTONS */
-.btn{width:100%;padding:13px;border-radius:12px;border:none;font-family:var(--main);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
-.btn-p{background:linear-gradient(135deg,var(--cyan),#0099aa);color:#000}
-.btn-p:active{transform:scale(.97)}
-.btn-r{background:linear-gradient(135deg,var(--red),#aa1133);color:#fff}
+.btn{width:100%;padding:12px;border-radius:var(--r12);border:none;font-family:var(--main);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.2px}
+.btn:active{transform:scale(.97)}
+.btn-p{background:linear-gradient(135deg,var(--cyan),#0088aa);color:#000}
+.btn-r{background:linear-gradient(135deg,var(--red),#990022);color:#fff}
 .btn-g{background:var(--s2);border:1px solid var(--border);color:var(--text)}
-.btn-warn{background:linear-gradient(135deg,var(--warn),#aa7700);color:#000}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn-sm{padding:8px 14px;font-size:12px;width:auto;border-radius:8px}
-
-/* SESSION GRID */
-.ses-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ses-btn{padding:18px 10px;border-radius:14px;border:2px solid var(--border);background:var(--s2);cursor:pointer;text-align:center;transition:all .2s}
-.ses-btn.kabul.on{border-color:var(--cyan);background:rgba(0,229,255,.08)}
-.ses-btn.cikis.on{border-color:var(--red);background:rgba(255,61,113,.08)}
-.ses-icon{font-size:26px;margin-bottom:5px}
-.ses-lbl{font-size:13px;font-weight:700}
-.ses-sub{font-size:10px;color:var(--dim);margin-top:2px}
-
-/* ACTIVE BAR */
-.abar{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.abar-info{font-size:12px}
-.abar-lbl{color:var(--dim);font-size:9px;text-transform:uppercase;letter-spacing:.8px}
-.abar-end{font-size:11px;color:var(--red);font-weight:700;cursor:pointer;padding:4px 10px;border-radius:6px;background:rgba(255,61,113,.1);border:1px solid rgba(255,61,113,.3)}
+.btn-w{background:linear-gradient(135deg,var(--warn),#996600);color:#000}
+.btn-blue{background:linear-gradient(135deg,var(--blue),#2255cc);color:#fff}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-sm{padding:7px 13px;font-size:11px;width:auto;border-radius:var(--r8)}
+.fr{display:flex;gap:7px}
+.fr .btn{flex:1}
 
 /* BADGE */
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.5px}
-.b-cyan{background:rgba(0,229,255,.15);color:var(--cyan)}
-.b-red{background:rgba(255,61,113,.15);color:var(--red)}
-.b-green{background:rgba(0,224,150,.15);color:var(--green)}
-.b-warn{background:rgba(255,170,0,.15);color:var(--warn)}
-.b-purple{background:rgba(168,85,247,.15);color:var(--purple)}
+.b{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.bc{background:rgba(0,229,255,.12);color:var(--cyan)}
+.br{background:rgba(255,61,113,.12);color:var(--red)}
+.bg{background:rgba(0,224,150,.12);color:var(--green)}
+.bw{background:rgba(255,170,0,.12);color:var(--warn)}
+.bp{background:rgba(168,85,247,.12);color:var(--purple)}
+.bb{background:rgba(68,136,255,.12);color:var(--blue)}
+
+/* OTURUM KARTI */
+.oses{background:var(--s2);border:1px solid var(--border);border-radius:var(--r12);padding:13px;margin-bottom:8px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.oses::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.oses.kabul::before{background:var(--cyan)}
+.oses.cikis::before{background:var(--red)}
+.oses.aktif{border-color:var(--cyan);box-shadow:0 0 0 1px rgba(0,229,255,.15)}
+.oses-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.oses-no{font-size:15px;font-weight:800;font-family:var(--mono)}
+.oses-badges{display:flex;gap:4px;flex-wrap:wrap}
+.oses-meta{font-size:11px;color:var(--dim2);margin-bottom:8px}
+.oses-stats{display:flex;gap:6px;flex-wrap:wrap}
+.oses-prog{margin-top:8px}
+.prog-bg{background:var(--s3);border-radius:4px;height:5px;overflow:hidden}
+.prog-fg{height:100%;border-radius:4px;transition:width .5s}
+
+/* ÜRÜN SATIRI (liste) */
+.urow{display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r8);margin-bottom:5px}
+.urow-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.urow.tam .urow-ico{background:rgba(0,224,150,.15)}
+.urow.eksik .urow-ico{background:rgba(255,61,113,.15)}
+.urow.kismi .urow-ico{background:rgba(255,170,0,.15)}
+.urow.fazla .urow-ico{background:rgba(168,85,247,.15)}
+.urow-body{flex:1;min-width:0}
+.urow-ttl{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.urow-sub{font-size:9px;color:var(--dim);font-family:var(--mono);margin-top:1px}
+.urow-paket{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+.pkb{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;font-family:var(--mono)}
+.pkb.ok{background:rgba(0,224,150,.2);color:var(--green)}
+.pkb.no{background:rgba(255,61,113,.15);color:var(--red)}
+.urow-cnt{text-align:right;flex-shrink:0}
+.urow-cnt-n{font-size:17px;font-weight:800;font-family:var(--mono)}
+.urow-cnt-l{font-size:8px;color:var(--dim);margin-top:1px}
 
 /* SCAN */
-.scan-wrap{border-radius:14px;overflow:hidden;background:#000;margin-bottom:10px}
-.scan-hint{text-align:center;font-size:11px;color:var(--dim);font-family:var(--mono);padding:8px}
+.scan-wrap{border-radius:var(--r12);overflow:hidden;background:#000;margin-bottom:8px}
 
 /* RESULT */
-.result{border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid;animation:slin .3s ease}
-@keyframes slin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.result.ok{background:rgba(0,224,150,.07);border-color:var(--green)}
-.result.err{background:rgba(255,61,113,.07);border-color:var(--red)}
-.result.warn{background:rgba(255,170,0,.07);border-color:var(--warn)}
-.result.dup{background:rgba(168,85,247,.07);border-color:var(--purple)}
-.res-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.res-ico{font-size:20px}
+.res{border-radius:var(--r12);padding:13px;margin-bottom:10px;border:1px solid;animation:slin .25s ease}
+@keyframes slin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.res.ok{background:rgba(0,224,150,.06);border-color:var(--green)}
+.res.err{background:rgba(255,61,113,.06);border-color:var(--red)}
+.res.warn{background:rgba(255,170,0,.06);border-color:var(--warn)}
+.res.dup{background:rgba(168,85,247,.06);border-color:var(--purple)}
+.res-hdr{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.res-ico{font-size:19px}
 .res-ttl{font-size:13px;font-weight:700}
-.res-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.rf{background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px}
-.rf-lbl{font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase}
-.rf-val{font-size:13px;font-weight:700;font-family:var(--mono);margin-top:2px;word-break:break-all}
+.res-flds{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.rf{background:rgba(255,255,255,.03);border-radius:7px;padding:7px 9px}
+.rf-l{font-size:8px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase}
+.rf-v{font-size:12px;font-weight:700;font-family:var(--mono);margin-top:1px;word-break:break-all}
 .rf.full{grid-column:1/-1}
 
-/* PROGRESS BAR */
-.prog-wrap{background:var(--s2);border-radius:8px;height:8px;overflow:hidden;margin:6px 0}
-.prog-bar{height:100%;border-radius:8px;transition:width .5s ease;background:linear-gradient(90deg,var(--cyan),var(--green))}
-.prog-bar.warn{background:linear-gradient(90deg,var(--warn),var(--red))}
-
-/* OTURUM LİSTESİ */
-.ses-list{display:flex;flex-direction:column;gap:8px}
-.ses-item{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .2s}
-.ses-item:hover{border-color:var(--cyan)}
-.ses-item-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.ses-item-ttl{font-size:14px;font-weight:700}
-.ses-item-sub{font-size:11px;color:var(--dim);font-family:var(--mono)}
-.ses-item-stats{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-
-/* ÜRÜN LİSTESİ */
-.urun-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-.urun-item{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px}
-.urun-item-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.urun-item-ico.ok{background:rgba(0,224,150,.15)}
-.urun-item-ico.partial{background:rgba(255,170,0,.15)}
-.urun-item-ico.missing{background:rgba(255,61,113,.15)}
-.urun-item-ico.extra{background:rgba(168,85,247,.15)}
-.urun-item-body{flex:1;min-width:0}
-.urun-item-ttl{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.urun-item-sub{font-size:10px;color:var(--dim);font-family:var(--mono);margin-top:2px}
-.urun-item-right{text-align:right;flex-shrink:0}
-.urun-item-count{font-size:16px;font-weight:800;font-family:var(--mono)}
-
-/* STATS GRID */
-.st-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
-.st-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
-.st-val{font-size:26px;font-weight:800;font-family:var(--mono)}
-.st-lbl{font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-top:3px}
+/* ABAR */
+.abar{background:var(--s2);border:1px solid var(--border);border-radius:var(--r12);padding:10px 13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.abar-end{font-size:10px;color:var(--red);font-weight:700;cursor:pointer;padding:5px 10px;border-radius:6px;background:rgba(255,61,113,.1);border:1px solid rgba(255,61,113,.25);white-space:nowrap}
 
 /* RAPOR */
-.rapor-sec{margin-bottom:16px}
-.rapor-ttl{font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.rapor-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--s2);border-radius:10px;margin-bottom:6px;border:1px solid var(--border)}
-.rapor-item-lft{font-size:13px;font-weight:600}
-.rapor-item-sub{font-size:10px;color:var(--dim);font-family:var(--mono);margin-top:2px}
+.rblock{margin-bottom:14px}
+.rttl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.ritem{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r8);margin-bottom:5px}
 
 /* TOAST */
-.toasts{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:5px;pointer-events:none;width:calc(100% - 28px);max-width:420px}
-.toast{padding:11px 15px;border-radius:12px;font-size:13px;font-weight:600;text-align:center;animation:tin .3s ease;backdrop-filter:blur(10px)}
-@keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-.toast.ok{background:rgba(0,224,150,.92);color:#000}
-.toast.err{background:rgba(255,61,113,.92);color:#fff}
-.toast.info{background:rgba(0,229,255,.92);color:#000}
-.toast.warn{background:rgba(255,170,0,.92);color:#000}
+.toasts{position:fixed;top:88px;left:50%;transform:translateX(-50%);z-index:999;pointer-events:none;width:calc(100% - 24px);max-width:420px;display:flex;flex-direction:column;gap:5px}
+.toast{padding:10px 14px;border-radius:var(--r12);font-size:12px;font-weight:700;text-align:center;animation:tin .25s ease;backdrop-filter:blur(12px)}
+@keyframes tin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.toast.ok{background:rgba(0,224,150,.93);color:#000}
+.toast.err{background:rgba(255,61,113,.93);color:#fff}
+.toast.info{background:rgba(0,229,255,.93);color:#000}
+.toast.warn{background:rgba(255,170,0,.93);color:#000}
 
 /* EMPTY */
-.empty{text-align:center;padding:36px 20px;color:var(--dim)}
-.empty-ico{font-size:44px;margin-bottom:10px;opacity:.4}
-.empty-txt{font-size:14px}
+.empty{text-align:center;padding:32px 16px;color:var(--dim)}
+.empty-ico{font-size:40px;margin-bottom:9px;opacity:.4}
 
-/* DIVIDER */
-.div{height:1px;background:var(--border);margin:12px 0}
-.mt8{margin-top:8px}
-.mt12{margin-top:12px}
-.flex-row{display:flex;gap:8px}
-.flex-row .btn{flex:1}
-.text-mono{font-family:var(--mono)}
-.text-dim{color:var(--dim)}
-.text-sm{font-size:12px}
-.bold{font-weight:700}
+/* UTILS */
+.mt8{margin-top:8px} .mt12{margin-top:12px} .mt16{margin-top:16px}
+.mono{font-family:var(--mono)} .dim{color:var(--dim)} .sm{font-size:12px} .bold{font-weight:700}
+.div{height:1px;background:var(--border);margin:11px 0}
+.st-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+.st-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r12);padding:13px;text-align:center}
+.st-v{font-size:24px;font-weight:800;font-family:var(--mono)}
+.st-l{font-size:8px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-top:3px}
 </style>
 </head>
 <body>
 
 <div class="hdr">
-  <div class="hdr-logo">⬡ DEPO SİSTEMİ v2</div>
-  <div class="hdr-right">
-    <div class="dot" id="dot"></div>
-    <span class="hdr-stat" id="dotTxt">Bağlı Değil</span>
-  </div>
+  <div class="logo">⬡ DEPO SİSTEMİ</div>
+  <div class="conn"><div class="dot" id="dot"></div><span id="dotTxt">Bağlı Değil</span></div>
 </div>
 
 <div class="tabs">
-  <div class="tab on" onclick="goTab('scan')" id="t-scan"><i>⬡</i>OKUT</div>
-  <div class="tab" onclick="goTab('oturumlar')" id="t-oturumlar"><i>▦</i>OTURUMLAR</div>
+  <div class="tab on" onclick="goTab('oturumlar')" id="t-oturumlar"><i>▦</i>OTURUMLAR</div>
+  <div class="tab" onclick="goTab('scan')" id="t-scan"><i>⬡</i>OKUT</div>
   <div class="tab" onclick="goTab('rapor')" id="t-rapor"><i>◈</i>RAPOR</div>
   <div class="tab" onclick="goTab('ayarlar')" id="t-ayarlar"><i>⊙</i>AYARLAR</div>
 </div>
 
 <div class="toasts" id="toasts"></div>
 
-<!-- ═══════════════════ OKUT SAYFASI ═══════════════════ -->
-<div class="pg on" id="pg-scan">
+<!-- ══════════════════════════════════════════════
+     OTURUMLAR
+══════════════════════════════════════════════ -->
+<div class="pg on" id="pg-oturumlar">
+  <button class="btn btn-p" onclick="openNewForm()" style="margin-bottom:10px">+ Yeni Oturum Oluştur</button>
 
-  <!-- Aktif oturum yoksa -->
-  <div id="noSession">
-    <div class="card">
-      <div class="card-ttl">Aktif Oturum Yok</div>
-      <p class="text-sm text-dim" style="margin-bottom:12px">Mal kabul başlatmak için önce bir oturum oluşturun veya mevcut bir oturuma girin.</p>
-      <div class="flex-row">
-        <button class="btn btn-p" onclick="goTab('oturumlar')">Oturumlar →</button>
-        <button class="btn btn-g" onclick="quickNewSession()">Hızlı Başlat</button>
+  <!-- YENİ OTURUM FORMU -->
+  <div class="card" id="newForm" style="display:none">
+    <div class="ct">Yeni Oturum</div>
+
+    <div class="g2">
+      <div class="ig">
+        <label class="lbl">Oturum Tipi *</label>
+        <select class="inp" id="nf-tip">
+          <option value="kabul">📦 Mal Kabul</option>
+          <option value="cikis">🚚 Mal Çıkış</option>
+        </select>
       </div>
+      <div class="ig">
+        <label class="lbl">Depo *</label>
+        <select class="inp" id="nf-depo"><option value="">Seçin...</option></select>
+      </div>
+    </div>
+    <div class="g3">
+      <div class="ig">
+        <label class="lbl">Araç Plakası</label>
+        <input class="inp" id="nf-plaka" placeholder="34 ABC 123">
+      </div>
+      <div class="ig">
+        <label class="lbl">Firma</label>
+        <input class="inp" id="nf-firma" placeholder="Firma adı">
+      </div>
+      <div class="ig">
+        <label class="lbl">Varış / Çıkış Tarihi</label>
+        <input class="inp" type="date" id="nf-tarih">
+      </div>
+    </div>
+    <div class="ig">
+      <label class="lbl">Sorumlu Personel *</label>
+      <input class="inp" id="nf-sorumlu" placeholder="Ad Soyad">
+    </div>
+
+    <div class="div"></div>
+    <div class="ct">Ürün Listesini Yapıştır</div>
+
+    <div class="ig">
+      <label class="lbl">Excel'den Kopyalanan Liste</label>
+      <textarea class="inp" id="nf-liste" rows="8"
+        placeholder="Excel'den kopyalayıp buraya yapıştırın.&#10;Beklenen sütun sırası:&#10;SAS KALEM NO | SÖZLEŞME NO | MÜŞTERİ ADI | MALZEME KODU | ÜRÜN ADI | ÜRÜN DETAYI | MİKTAR&#10;&#10;Sadece MALZEME KODU, ÜRÜN ADI ve MİKTAR zorunlu."></textarea>
+    </div>
+
+    <div class="card" id="onizleme" style="display:none;background:var(--s2);border-color:var(--border2)">
+      <div class="ct">Önizleme</div>
+      <div id="onizlemeIcerik"></div>
+    </div>
+
+    <div class="fr mt8">
+      <button class="btn btn-g" onclick="closeNewForm()">İptal</button>
+      <button class="btn btn-blue" onclick="parseOnizleme()" id="btnOnizle">Listeyi Analiz Et →</button>
+    </div>
+    <div id="oturumOlusturDiv" style="display:none">
+      <div class="div"></div>
+      <button class="btn btn-p" onclick="createSession()">✓ Oturumu Oluştur</button>
     </div>
   </div>
 
-  <!-- Aktif oturum varsa -->
-  <div id="hasSession" style="display:none">
+  <!-- OTURUM LİSTESİ -->
+  <div id="sesList"></div>
+</div>
 
-    <!-- Oturum barı -->
-    <div class="abar">
-      <div class="abar-info">
-        <div class="abar-lbl">Aktif Oturum</div>
-        <div id="abarText" style="font-size:13px;font-weight:700;margin-top:2px"></div>
+<!-- ══════════════════════════════════════════════
+     OKUT
+══════════════════════════════════════════════ -->
+<div class="pg" id="pg-scan">
+
+  <div id="scanNoSes">
+    <div class="card">
+      <div class="ct">Aktif Oturum Yok</div>
+      <p class="sm dim" style="margin-bottom:10px">Mal kabul/çıkış başlatmak için önce bir oturum oluşturun veya seçin.</p>
+      <button class="btn btn-p" onclick="goTab('oturumlar')">Oturumlara Git →</button>
+    </div>
+  </div>
+
+  <div id="scanHasSes" style="display:none">
+
+    <!-- Aktif oturum barı -->
+    <div class="abar" id="scanAbar">
+      <div>
+        <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">Aktif Oturum</div>
+        <div id="scanAbarTxt" style="font-size:13px;font-weight:700;margin-top:2px"></div>
       </div>
       <div class="abar-end" onclick="endSession()">Bitir ✕</div>
     </div>
 
     <!-- İlerleme -->
-    <div class="card" id="progressCard">
-      <div class="card-ttl">İlerleme</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span class="text-sm text-dim">Okutulan Paket</span>
-        <span class="text-sm bold" id="progTxt">0 / 0</span>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span class="sm dim">Paket İlerlemesi</span>
+        <span class="sm bold mono" id="progTxt">0 / 0</span>
       </div>
-      <div class="prog-wrap"><div class="prog-bar" id="progBar" style="width:0%"></div></div>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap" id="progBadges"></div>
+      <div class="prog-bg"><div class="prog-fg" id="progFg" style="width:0%;background:linear-gradient(90deg,var(--cyan),var(--green))"></div></div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap" id="progBadges"></div>
     </div>
 
     <!-- Kamera -->
     <div class="card" id="camCard" style="display:none">
-      <div class="card-ttl">Kamera ile Okut</div>
-      <div class="scan-wrap">
-        <div id="qr-reader" style="width:100%"></div>
-      </div>
-      <div class="scan-hint">QR / DataMatrix kodu çerçeve içine alın</div>
+      <div class="ct">Kamera ile Okut</div>
+      <div class="scan-wrap"><div id="qr-reader" style="width:100%"></div></div>
+      <div style="text-align:center;font-size:10px;color:var(--dim);font-family:var(--mono);padding:6px">QR / DataMatrix çerçeve içine alın</div>
       <button class="btn btn-g mt8" onclick="stopCam()">📷 Kamerayı Durdur</button>
     </div>
 
-    <!-- Manuel giriş -->
+    <!-- Manuel -->
     <div class="card" id="manCard">
-      <div class="card-ttl">Barkod Okut</div>
-      <div class="flex-row">
-        <input type="text" class="inp text-mono" id="bcInput" placeholder="Okutun veya yazın..." autocomplete="off" autocorrect="off" autocapitalize="off" style="font-size:12px">
+      <div class="ct">Barkod Okut</div>
+      <div class="fr">
+        <input type="text" class="inp mono" id="bcIn" placeholder="Okutun veya yazın..." autocomplete="off" autocorrect="off" autocapitalize="off" style="font-size:12px">
         <button class="btn btn-p btn-sm" onclick="doManual()">▶</button>
       </div>
-      <div class="flex-row mt8">
-        <button class="btn btn-g" onclick="startCam()" style="font-size:12px">📷 Kamera Aç</button>
-      </div>
+      <button class="btn btn-g mt8" style="font-size:12px" onclick="startCam()">📷 Kamera Aç</button>
     </div>
 
-    <!-- Son okutma sonucu -->
-    <div id="resultArea"></div>
+    <!-- Sonuç -->
+    <div id="resArea"></div>
 
-    <!-- Ürün durumu listesi -->
+    <!-- Ürün Durumu -->
     <div class="card">
-      <div class="card-ttl">Beklenen Ürünler</div>
-      <div id="urunDurum">
-        <div class="empty"><div class="empty-ico">📦</div><div class="empty-txt">Ürün listesi yükleniyor...</div></div>
-      </div>
+      <div class="ct">Ürün Durumu</div>
+      <div id="urunDurum"></div>
     </div>
 
   </div>
 </div>
 
-<!-- ═══════════════════ OTURUMLAR SAYFASI ═══════════════════ -->
-<div class="pg" id="pg-oturumlar">
-
-  <div class="flex-row" style="margin-bottom:12px">
-    <button class="btn btn-p" onclick="showNewSession()">+ Yeni Oturum</button>
-  </div>
-
-  <!-- Yeni Oturum Formu -->
-  <div class="card" id="newSesForm" style="display:none">
-    <div class="card-ttl">Yeni Mal Kabul Oturumu</div>
-
-    <div class="row2">
-      <div class="ig">
-        <label class="lbl">Araç / Sefer No</label>
-        <input class="inp" id="ns-arac" placeholder="Örn: 34ABC123">
-      </div>
-      <div class="ig">
-        <label class="lbl">Sipariş No</label>
-        <input class="inp" id="ns-siparis" placeholder="Örn: DD2026-001">
-      </div>
-    </div>
-    <div class="row2">
-      <div class="ig">
-        <label class="lbl">Depo</label>
-        <select class="inp" id="ns-depo">
-          <option value="">Seçin...</option>
-        </select>
-      </div>
-      <div class="ig">
-        <label class="lbl">Sorumlu</label>
-        <input class="inp" id="ns-sorumlu" placeholder="Ad Soyad">
-      </div>
-    </div>
-
-    <div class="div"></div>
-    <div class="card-ttl">Beklenen Ürün Listesi</div>
-
-    <div id="urunListeForm"></div>
-
-    <button class="btn btn-g mt8" onclick="addUrunRow()" style="font-size:12px">+ Ürün Ekle</button>
-
-    <div class="div"></div>
-    <div class="flex-row">
-      <button class="btn btn-g" onclick="hideNewSession()">İptal</button>
-      <button class="btn btn-p" onclick="createSession()">Oturumu Oluştur →</button>
-    </div>
-  </div>
-
-  <!-- Oturum Listesi -->
-  <div class="card">
-    <div class="card-ttl">Oturumlar</div>
-    <div id="sesList">
-      <div class="empty"><div class="empty-ico">▦</div><div class="empty-txt">Henüz oturum yok</div></div>
-    </div>
-  </div>
-
-</div>
-
-<!-- ═══════════════════ RAPOR SAYFASI ═══════════════════ -->
+<!-- ══════════════════════════════════════════════
+     RAPOR
+══════════════════════════════════════════════ -->
 <div class="pg" id="pg-rapor">
   <div class="card">
-    <div class="card-ttl">Oturum Seç</div>
-    <select class="inp" id="raporSes" onchange="loadRapor()">
-      <option value="">Oturum seçin...</option>
-    </select>
+    <div class="ct">Oturum Seç</div>
+    <select class="inp" id="raporSel" onchange="loadRapor()"><option value="">Seçin...</option></select>
   </div>
-  <div id="raporContent">
-    <div class="empty"><div class="empty-ico">◈</div><div class="empty-txt">Rapor için oturum seçin</div></div>
-  </div>
+  <div id="raporBody"><div class="empty"><div class="empty-ico">◈</div><div>Rapor için oturum seçin</div></div></div>
 </div>
 
-<!-- ═══════════════════ AYARLAR SAYFASI ═══════════════════ -->
+<!-- ══════════════════════════════════════════════
+     AYARLAR
+══════════════════════════════════════════════ -->
 <div class="pg" id="pg-ayarlar">
   <div class="card">
-    <div class="card-ttl">Google Sheets Bağlantısı</div>
+    <div class="ct">Google Sheets Bağlantısı</div>
     <div class="ig">
       <label class="lbl">Apps Script URL</label>
-      <input type="url" class="inp text-mono" id="scriptUrl" placeholder="https://script.google.com/macros/s/..." style="font-size:11px">
+      <input type="url" class="inp mono" id="cfgUrl" style="font-size:10px" placeholder="https://script.google.com/macros/s/...">
     </div>
-    <button class="btn btn-p" onclick="saveAyarlar()">Kaydet & Test Et</button>
+    <button class="btn btn-p" onclick="saveConfig()">Kaydet & Test Et</button>
   </div>
   <div class="card">
-    <div class="card-ttl">Depo Listesi</div>
-    <div class="flex-row ig">
-      <input class="inp" id="newDepo" placeholder="Depo adı...">
-      <button class="btn btn-p btn-sm" onclick="addDepo()">+</button>
-    </div>
+    <div class="ct">Depo Listesi</div>
+    <div class="fr ig"><input class="inp" id="newDepo" placeholder="Depo adı..."><button class="btn btn-p btn-sm" onclick="addDepo()">+</button></div>
     <div id="depoListEl"></div>
   </div>
   <div class="card">
-    <div class="card-ttl">Hakkında</div>
-    <div class="text-sm text-dim">
-      <div style="margin-bottom:5px">Depo Yönetim Sistemi v2.0</div>
-      <div>GS1 Hibrit · DataMatrix · QR · EAN</div>
-      <div style="margin-top:5px;font-family:var(--mono);font-size:10px">Doğtaş / Kelebek formatları</div>
+    <div class="ct">Sütun Eşleştirme</div>
+    <p class="sm dim" style="margin-bottom:10px">Yapıştırdığınız tablodaki sütun sıralarını belirtin (0'dan başlar)</p>
+    <div class="g2">
+      <div class="ig"><label class="lbl">Malzeme Kodu Sütunu</label><input class="inp" type="number" id="colKod" value="3" min="0"></div>
+      <div class="ig"><label class="lbl">Ürün Adı Sütunu</label><input class="inp" type="number" id="colAd" value="4" min="0"></div>
+      <div class="ig"><label class="lbl">Miktar Sütunu</label><input class="inp" type="number" id="colMiktar" value="6" min="0"></div>
+      <div class="ig"><label class="lbl">Ürün Detay Sütunu</label><input class="inp" type="number" id="colDetay" value="5" min="0"></div>
+      <div class="ig"><label class="lbl">SAS Kalem No Sütunu</label><input class="inp" type="number" id="colSas" value="0" min="0"></div>
+      <div class="ig"><label class="lbl">Müşteri Adı Sütunu</label><input class="inp" type="number" id="colMusteri" value="2" min="0"></div>
     </div>
+    <button class="btn btn-g" onclick="saveCols()" style="font-size:12px">Kaydet</button>
   </div>
 </div>
 
-<canvas id="cv" style="display:none"></canvas>
-<iframe name="hif" id="hif" style="display:none"></iframe>
-
 <script>
-// ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // STATE
-// ════════════════════════════════════════════════
-const S = {
-  scriptUrl: localStorage.getItem('dv2_url') || 'https://script.google.com/macros/s/AKfycbyMSOrVlPdO3H_RYsFAJxp6B5qvTjBhsumvNYDdkHVzPMtW0160cc6zGaO75arNixCp/exec',
-  depolar: JSON.parse(localStorage.getItem('dv2_depolar') || '["İstanbul Ana Depo","Ankara Depo","İzmir Depo","Bursa Depo"]'),
-  oturumlar: JSON.parse(localStorage.getItem('dv2_oturumlar') || '[]'),
-  aktifId: localStorage.getItem('dv2_aktif') || null,
-  camActive: false,
-  cooldown: false
+// ═══════════════════════════════════════════════════
+const DB = {
+  url:      localStorage.getItem('d3_url') || 'https://script.google.com/macros/s/AKfycbyMSOrVlPdO3H_RYsFAJxp6B5qvTjBhsumvNYDdkHVzPMtW0160cc6zGaO75arNixCp/exec',
+  depolar:  JSON.parse(localStorage.getItem('d3_depolar') || '["İstanbul Ana Depo","Ankara Depo","İzmir Depo","Bursa Depo"]'),
+  oturumlar:JSON.parse(localStorage.getItem('d3_ses') || '[]'),
+  aktifId:  localStorage.getItem('d3_aktif') || null,
+  cols:     JSON.parse(localStorage.getItem('d3_cols') || '{"kod":3,"ad":4,"miktar":6,"detay":5,"sas":0,"musteri":2}'),
+  cam: false, cool: false
 };
 
-function save() {
-  localStorage.setItem('dv2_oturumlar', JSON.stringify(S.oturumlar));
-  localStorage.setItem('dv2_aktif', S.aktifId || '');
+// Önizleme tamponu
+let parsedUrunler = [];
+
+function persist() {
+  localStorage.setItem('d3_ses', JSON.stringify(DB.oturumlar));
+  localStorage.setItem('d3_aktif', DB.aktifId || '');
 }
 
-function getAktif() {
-  return S.oturumlar.find(o => o.id === S.aktifId) || null;
+function aktif() { return DB.oturumlar.find(o => o.id === DB.aktifId) || null; }
+
+// ═══════════════════════════════════════════════════
+// OTURUM NO ÜRETİCİ
+// ═══════════════════════════════════════════════════
+function genSesId(tip) {
+  const prefix = tip === 'kabul' ? 'MK' : 'MC';
+  const today = new Date();
+  const d = today.toISOString().slice(0,10).replace(/-/g,'');
+  const ayniGun = DB.oturumlar.filter(o =>
+    o.id.startsWith(prefix + '-' + d)
+  ).length;
+  const sira = String(ayniGun + 1).padStart(3, '0');
+  return `${prefix}-${d}-${sira}`;
 }
 
-// ════════════════════════════════════════════════
-// PARSING — GS1 HYBRİD
-// ════════════════════════════════════════════════
-function parse(raw) {
-  raw = raw.trim();
-  if (raw.length < 20) return { err: 'Barkod çok kısa' };
+// ═══════════════════════════════════════════════════
+// LİSTE PARSER
+// ═══════════════════════════════════════════════════
+function parseOnizleme() {
+  const raw = document.getElementById('nf-liste').value.trim();
+  if (!raw) { toast('Liste boş!', 'err'); return; }
 
-  if (raw.startsWith('01') && raw.length > 50) {
-    return parseGS1(raw);
+  const c = DB.cols;
+  const satirlar = raw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+
+  parsedUrunler = [];
+  const hatalar = [];
+
+  satirlar.forEach((satir, idx) => {
+    // Tab veya birden fazla boşlukla ayrılmış sütunlar
+    const cols = satir.split('\t');
+    if (cols.length < 3) return; // çok az sütun
+
+    const kod = (cols[c.kod] || '').trim();
+    const ad  = (cols[c.ad]  || '').trim();
+    const miktarStr = (cols[c.miktar] || '1').trim();
+    const detay = (cols[c.detay] || '').trim();
+    const sas = (cols[c.sas]   || '').trim();
+    const musteri = (cols[c.musteri] || '').trim();
+
+    if (!kod || kod.length < 4) return; // başlık satırı veya boş
+
+    const miktar = parseInt(miktarStr) || 1;
+
+    // Mükerrer kontrol — aynı kod zaten eklendi mi?
+    const existing = parsedUrunler.find(u => u.kod === kod);
+    if (existing) {
+      existing.miktar += miktar; // miktarı topla
+    } else {
+      parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: miktar });
+    }
+  });
+
+  if (parsedUrunler.length === 0) {
+    toast('Hiç ürün bulunamadı. Sütun sıralarını kontrol edin.', 'err');
+    return;
   }
-  if (/^\d{8,14}$/.test(raw)) {
-    return { fmt:'EAN', urunKodu:raw, gtin:raw, seriNo:raw, paketSira:1, toplamPaket:1, sas:null, ham:raw };
-  }
-  return { fmt:'BILINMEYEN', urunKodu:raw.slice(-10), gtin:null, seriNo:raw, paketSira:1, toplamPaket:1, sas:null, ham:raw };
+
+  // Önizleme göster
+  const div = document.getElementById('onizleme');
+  const ic  = document.getElementById('onizlemeIcerik');
+  div.style.display = 'block';
+
+  let html = `<div style="font-size:11px;color:var(--green);margin-bottom:8px">✓ ${parsedUrunler.length} ürün bulundu</div>`;
+  html += '<div style="max-height:200px;overflow-y:auto">';
+  parsedUrunler.forEach(u => {
+    html += `
+      <div style="display:flex;justify-content:space-between;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px">
+        <div>
+          <div class="bold">${u.kod}</div>
+          <div class="dim" style="font-size:10px">${u.ad}${u.detay ? ' · ' + u.detay : ''}</div>
+          ${u.musteri ? `<div style="font-size:9px;color:var(--purple)">${u.musteri}</div>` : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:10px">
+          <div class="bold mono">${u.toplamPaket} paket</div>
+          ${u.sas ? `<div class="dim" style="font-size:9px">${u.sas}</div>` : ''}
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  ic.innerHTML = html;
+
+  document.getElementById('oturumOlusturDiv').style.display = 'block';
+  document.getElementById('btnOnizle').textContent = '↻ Tekrar Analiz Et';
+  toast(`${parsedUrunler.length} ürün hazır`, 'ok');
 }
 
-function parseGS1(raw) {
-  const gtin = raw.substring(2, 16);
-  const aiPkt = raw.substring(16, 18);
-  let paketSira = 1, seriNo = null;
-
-  if (aiPkt[0] === '2' && !isNaN(aiPkt[1])) {
-    paketSira = parseInt(aiPkt[1]) || 1;
-    seriNo = raw.substring(18, 36).trim();
-  }
-
-  // Toplam paket: seriNo içinde gömülü — format: MMYYYYSSSS[TOPLAM]...
-  // Kelebek örneği: 04202650004207 51 → son 2 hane "51" = paket 1, toplam 2? Hayır
-  // Etiketten "QTY 1/2" → toplam paket seriNo içinde değil, ayrı alan
-  // Biz seriNo'nun ilk 2 hanesinden çıkaracağız (MMYY format sonrası)
-  // Alternatif: AI 97 alanından çıkar
-  let toplamPaket = 1;
-  const ai97 = raw.indexOf('97');
-  if (ai97 > 50) {
-    // 97 alanı: 0000098000000002 → son hane toplam paket olabilir
-    const alan97 = raw.substring(ai97 + 2, ai97 + 18);
-    const son = parseInt(alan97.slice(-1));
-    if (son > 0 && son < 10) toplamPaket = son;
-  }
-
-  // SAS
-  let sas = null;
-  const i95 = raw.indexOf('95');
-  if (i95 > 50) sas = raw.substring(i95 + 2, i95 + 12);
-
-  // Ürün kodu: son 10
-  const urunKodu = raw.slice(-10);
-
-  return { fmt:'GS1-HYBRİD', gtin, urunKodu, seriNo, paketSira, toplamPaket, sas, ham:raw };
+// ═══════════════════════════════════════════════════
+// OTURUM OLUŞTUR
+// ═══════════════════════════════════════════════════
+function openNewForm() {
+  document.getElementById('newForm').style.display = 'block';
+  document.getElementById('oturumOlusturDiv').style.display = 'none';
+  document.getElementById('onizleme').style.display = 'none';
+  document.getElementById('btnOnizle').textContent = 'Listeyi Analiz Et →';
+  document.getElementById('nf-tarih').value = new Date().toISOString().slice(0,10);
+  parsedUrunler = [];
+  fillDepoSelect('nf-depo');
 }
 
-// ════════════════════════════════════════════════
-// TAB
-// ════════════════════════════════════════════════
-function goTab(name) {
-  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-  document.getElementById('pg-' + name).classList.add('on');
-  document.getElementById('t-' + name).classList.add('on');
-  if (name === 'scan') renderScanPage();
-  if (name === 'oturumlar') renderOturumlar();
-  if (name === 'rapor') renderRaporSelect();
-  if (name === 'ayarlar') renderAyarlar();
+function closeNewForm() {
+  document.getElementById('newForm').style.display = 'none';
+  parsedUrunler = [];
 }
 
-// ════════════════════════════════════════════════
+function createSession() {
+  const tip     = document.getElementById('nf-tip').value;
+  const depo    = document.getElementById('nf-depo').value;
+  const plaka   = document.getElementById('nf-plaka').value.trim();
+  const firma   = document.getElementById('nf-firma').value.trim();
+  const tarih   = document.getElementById('nf-tarih').value;
+  const sorumlu = document.getElementById('nf-sorumlu').value.trim();
+
+  if (!depo)    { toast('Depo seçin!', 'err'); return; }
+  if (!sorumlu) { toast('Sorumlu personel girin!', 'err'); return; }
+  if (parsedUrunler.length === 0) { toast('Ürün listesi analiz edin!', 'err'); return; }
+
+  const id = genSesId(tip);
+
+  const ses = {
+    id, tip, depo, plaka, firma, tarih, sorumlu,
+    olusturmaTarih: new Date().toISOString(),
+    urunler: parsedUrunler.map(u => ({ ...u })),
+    hareketler: [],
+    durum: 'beklemede' // beklemede | devam | tamamlandi | sorunlu | kapali
+  };
+
+  DB.oturumlar.unshift(ses);
+  DB.aktifId = id;
+  persist();
+
+  // Sheets'e gönder
+  sendSheets({ action:'newSession', ...ses, urunler: JSON.stringify(ses.urunler) });
+
+  closeNewForm();
+  toast(`${id} oluşturuldu`, 'ok');
+  renderOturumlar();
+  goTab('scan');
+}
+
+// ═══════════════════════════════════════════════════
+// OTURUMLAR RENDER
+// ═══════════════════════════════════════════════════
+function renderOturumlar() {
+  const list = document.getElementById('sesList');
+  if (DB.oturumlar.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-ico">▦</div><div>Henüz oturum yok</div></div>';
+    return;
+  }
+
+  list.innerHTML = DB.oturumlar.map(o => {
+    const stats    = getSesStats(o);
+    const aktifMi  = o.id === DB.aktifId;
+    const tipLabel = o.tip === 'kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
+    const durumBadge = getDurumBadge(o);
+    const pct = stats.toplamPkt > 0 ? Math.min(100, Math.round(stats.okutulan / stats.toplamPkt * 100)) : 0;
+
+    return `
+      <div class="oses ${o.tip} ${aktifMi ? 'aktif' : ''}" onclick="sesAction('${o.id}')">
+        <div class="oses-hdr">
+          <div class="oses-no">${o.id}</div>
+          <div class="oses-badges">
+            ${aktifMi ? '<span class="b bc">AKTİF</span>' : ''}
+            <span class="b ${o.tip === 'kabul' ? 'bc' : 'br'}">${tipLabel}</span>
+            ${durumBadge}
+          </div>
+        </div>
+        <div class="oses-meta">
+          ${o.depo} · ${o.firma || '—'} · ${o.plaka || '—'} · ${o.sorumlu}
+          ${o.tarih ? ' · ' + o.tarih : ''}
+        </div>
+        <div class="oses-stats">
+          <span class="b bg">✓ Tam: ${stats.tam}</span>
+          <span class="b bw">⚡ Eksik: ${stats.eksik}</span>
+          ${stats.fazla > 0 ? `<span class="b bp">+ Fazla: ${stats.fazla}</span>` : ''}
+          <span class="b bb">${stats.okutulan}/${stats.toplamPkt} paket</span>
+          <span class="b" style="background:rgba(255,255,255,.05);color:var(--dim)">${o.urunler.length} ürün</span>
+        </div>
+        <div class="oses-prog">
+          <div class="prog-bg">
+            <div class="prog-fg" style="width:${pct}%;background:linear-gradient(90deg,${o.tip==='kabul'?'var(--cyan)':'var(--red)'},${pct>=100?'var(--green)':'var(--warn)+'})"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          ${o.durum !== 'kapali' ? `<button class="btn btn-p btn-sm" onclick="event.stopPropagation();activateAndScan('${o.id}')">Okutmaya Başla →</button>` : ''}
+          <button class="btn btn-g btn-sm" onclick="event.stopPropagation();goRapor('${o.id}')">Rapor</button>
+          <button class="btn btn-r btn-sm" onclick="event.stopPropagation();deleteSes('${o.id}')">Sil</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function getDurumBadge(o) {
+  const s = o.durum;
+  if (s === 'beklemede')   return '<span class="b bw">⏳ BEKLENİYOR</span>';
+  if (s === 'devam')       return '<span class="b bc">▶ DEVAM EDİYOR</span>';
+  if (s === 'tamamlandi')  return '<span class="b bg">✓ TAMAMLANDI</span>';
+  if (s === 'sorunlu')     return '<span class="b br">⚠ SORUNLU</span>';
+  if (s === 'kapali')      return '<span class="b" style="background:rgba(255,255,255,.05);color:var(--dim)">KAPALI</span>';
+  return '';
+}
+
+function getSesStats(o) {
+  const toplamPkt = o.urunler.reduce((s, u) => s + (u.toplamPaket || 1), 0);
+  const okutulan  = o.hareketler.length;
+  const tam       = o.urunler.filter(u => isUrunTam(o, u)).length;
+  const eksik     = o.urunler.filter(u => !isUrunTam(o, u)).length;
+  const fazla     = getFazla(o).length;
+  return { toplamPkt, okutulan, tam, eksik, fazla };
+}
+
+function sesAction(id) {
+  // Oturum detayına git (şimdilik raporu aç)
+  goRapor(id);
+}
+
+function activateAndScan(id) {
+  DB.aktifId = id;
+  const o = DB.oturumlar.find(x => x.id === id);
+  if (o && o.durum === 'beklemede') { o.durum = 'devam'; persist(); }
+  persist();
+  goTab('scan');
+}
+
+function deleteSes(id) {
+  if (!confirm(`Bu oturumu ve bağlı tüm verileri silmek istediğinize emin misiniz?`)) return;
+  DB.oturumlar = DB.oturumlar.filter(o => o.id !== id);
+  if (DB.aktifId === id) DB.aktifId = null;
+  persist();
+  renderOturumlar();
+  toast('Oturum silindi', 'info');
+}
+
+function endSession() {
+  if (!confirm('Oturumu kapatmak istiyor musunuz?')) return;
+  const o = aktif();
+  if (o) {
+    const stats = getSesStats(o);
+    o.durum = stats.eksik === 0 && stats.fazla === 0 ? 'tamamlandi' : 'sorunlu';
+    persist();
+  }
+  stopCam();
+  DB.aktifId = null;
+  persist();
+  renderScanPage();
+  renderOturumlar();
+  toast('Oturum kapatıldı', 'info');
+}
+
+// ═══════════════════════════════════════════════════
 // SCAN PAGE
-// ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 function renderScanPage() {
-  const o = getAktif();
-  document.getElementById('noSession').style.display = o ? 'none' : 'block';
-  document.getElementById('hasSession').style.display = o ? 'block' : 'none';
+  const o = aktif();
+  document.getElementById('scanNoSes').style.display  = o ? 'none'  : 'block';
+  document.getElementById('scanHasSes').style.display = o ? 'block' : 'none';
   if (!o) return;
 
-  // Abar
-  const tip = o.tip === 'kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
-  document.getElementById('abarText').innerHTML =
-    `<span class="badge b-cyan">${tip}</span> ${o.siparis} · ${o.depo}`;
+  const tipLabel = o.tip === 'kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
+  document.getElementById('scanAbarTxt').innerHTML =
+    `<span class="b ${o.tip === 'kabul' ? 'bc' : 'br'}">${tipLabel}</span> <span class="mono" style="font-size:12px">${o.id}</span> · ${o.depo}`;
 
   renderProgress(o);
   renderUrunDurum(o);
 
-  // Focus input
   setTimeout(() => {
-    const inp = document.getElementById('bcInput');
-    if (inp && !S.camActive) inp.focus();
+    const inp = document.getElementById('bcIn');
+    if (inp && !DB.cam) inp.focus();
   }, 200);
 }
 
 function renderProgress(o) {
-  const toplamBeklenen = o.urunler.reduce((s, u) => s + (u.toplamPaket || 1), 0);
-  const okutulan = o.hareketler.length;
-  const pct = toplamBeklenen > 0 ? Math.min(100, Math.round(okutulan / toplamBeklenen * 100)) : 0;
+  const st = getSesStats(o);
+  const pct = st.toplamPkt > 0 ? Math.min(100, Math.round(st.okutulan / st.toplamPkt * 100)) : 0;
 
-  document.getElementById('progTxt').textContent = `${okutulan} / ${toplamBeklenen} paket`;
-  const bar = document.getElementById('progBar');
-  bar.style.width = pct + '%';
-  bar.className = 'prog-bar' + (pct > 100 ? ' warn' : '');
-
-  // Badges
-  const tam = o.urunler.filter(u => isUrunTam(o, u)).length;
-  const eksik = o.urunler.filter(u => !isUrunTam(o, u)).length;
-  const fazla = getFazlaUrunler(o).length;
+  document.getElementById('progTxt').textContent = `${st.okutulan} / ${st.toplamPkt} paket`;
+  const fg = document.getElementById('progFg');
+  fg.style.width = pct + '%';
+  fg.style.background = pct >= 100
+    ? 'linear-gradient(90deg,var(--green),var(--cyan))'
+    : 'linear-gradient(90deg,var(--cyan),var(--warn))';
 
   document.getElementById('progBadges').innerHTML = `
-    <span class="badge b-green">✓ Tam: ${tam}</span>
-    <span class="badge b-warn">⚡ Eksik: ${eksik}</span>
-    ${fazla > 0 ? `<span class="badge b-purple">+ Fazla: ${fazla}</span>` : ''}
-  `;
-}
-
-function isUrunTam(o, urun) {
-  // Ürünün tüm paketleri okutulmuş mu?
-  const toplamPaket = urun.toplamPaket || 1;
-  const okutulanPaketler = o.hareketler.filter(h => h.urunKodu === urun.kod);
-  // Her paket sırası için en az 1 okutma var mı?
-  const siralar = new Set(okutulanPaketler.map(h => h.paketSira));
-  for (let i = 1; i <= toplamPaket; i++) {
-    if (!siralar.has(i)) return false;
-  }
-  return true;
-}
-
-function getFazlaUrunler(o) {
-  const bilinen = new Set(o.urunler.map(u => u.kod));
-  const fazlaKodlar = new Set();
-  o.hareketler.forEach(h => {
-    if (!bilinen.has(h.urunKodu)) fazlaKodlar.add(h.urunKodu);
-  });
-  return [...fazlaKodlar];
+    <span class="b bg">✓ Tam: ${st.tam}</span>
+    <span class="b bw">⚡ Eksik: ${st.eksik}</span>
+    ${st.fazla > 0 ? `<span class="b bp">+ Fazla: ${st.fazla}</span>` : ''}
+    <span class="b bb">${pct}%</span>`;
 }
 
 function renderUrunDurum(o) {
-  const container = document.getElementById('urunDurum');
-  if (!o.urunler || o.urunler.length === 0) {
-    container.innerHTML = '<div class="empty"><div class="empty-txt">Bu oturumda beklenen ürün yok</div></div>';
-    return;
-  }
+  const c = document.getElementById('urunDurum');
+  if (!o.urunler.length) { c.innerHTML = '<div class="empty"><div>Ürün yok</div></div>'; return; }
 
-  let html = '<div class="urun-list">';
+  let html = '';
   o.urunler.forEach(u => {
-    const toplamPaket = u.toplamPaket || 1;
-    const okutulanlar = o.hareketler.filter(h => h.urunKodu === u.kod);
-    const okutulanSiralar = new Set(okutulanlar.map(h => h.paketSira));
-    const tam = isUrunTam(o, u);
+    const tp   = u.toplamPaket || 1;
+    const oks  = o.hareketler.filter(h => h.urunKodu === u.kod);
+    const siralar = new Set(oks.map(h => h.paketSira));
+    const tam  = isUrunTam(o, u);
 
-    let durum, ico, cls;
-    if (tam) { durum = 'TAM'; ico = '✓'; cls = 'ok'; }
-    else if (okutulanlar.length === 0) { durum = 'BEKLENİYOR'; ico = '◯'; cls = 'missing'; }
-    else { durum = 'KISMİ'; ico = '⟳'; cls = 'partial'; }
+    let cls, ico;
+    if (tam)            { cls='tam';   ico='✓'; }
+    else if (!oks.length){ cls='eksik'; ico='○'; }
+    else                { cls='kismi'; ico='◑'; }
 
-    // Hangi paketler okutu hangileri eksik
-    let paketDurum = '';
-    for (let i = 1; i <= toplamPaket; i++) {
-      const ok = okutulanSiralar.has(i);
-      paketDurum += `<span style="font-size:10px;margin-right:4px;color:${ok ? 'var(--green)' : 'var(--red)'}">P${i}${ok ? '✓' : '✗'}</span>`;
+    let pkts = '';
+    for (let i = 1; i <= tp; i++) {
+      pkts += `<div class="pkb ${siralar.has(i)?'ok':'no'}">${i}</div>`;
     }
 
     html += `
-      <div class="urun-item">
-        <div class="urun-item-ico ${cls}">${ico}</div>
-        <div class="urun-item-body">
-          <div class="urun-item-ttl">${u.ad || u.kod}</div>
-          <div class="urun-item-sub">${u.kod} · ${u.siparis || ''}</div>
-          <div style="margin-top:4px">${paketDurum}</div>
+      <div class="urow ${cls}">
+        <div class="urow-ico">${ico}</div>
+        <div class="urow-body">
+          <div class="urow-ttl">${u.ad || u.kod}</div>
+          <div class="urow-sub">${u.kod}${u.musteri ? ' · ' + u.musteri : ''}</div>
+          <div class="urow-paket">${pkts}</div>
         </div>
-        <div class="urun-item-right">
-          <div class="urun-item-count" style="color:${tam ? 'var(--green)' : okutulanlar.length > 0 ? 'var(--warn)' : 'var(--red)'}">${okutulanlar.length}/${toplamPaket}</div>
-          <div style="font-size:9px;color:var(--dim);margin-top:2px">${durum}</div>
+        <div class="urow-cnt">
+          <div class="urow-cnt-n" style="color:${tam?'var(--green)':oks.length?'var(--warn)':'var(--red)'}">${oks.length}/${tp}</div>
+          <div class="urow-cnt-l">${cls.toUpperCase()}</div>
         </div>
       </div>`;
   });
 
   // Fazla ürünler
-  const fazla = getFazlaUrunler(o);
-  fazla.forEach(kod => {
-    const pkts = o.hareketler.filter(h => h.urunKodu === kod);
+  getFazla(o).forEach(kod => {
+    const n = o.hareketler.filter(h => h.urunKodu === kod).length;
     html += `
-      <div class="urun-item">
-        <div class="urun-item-ico extra">+</div>
-        <div class="urun-item-body">
-          <div class="urun-item-ttl" style="color:var(--purple)">${kod}</div>
-          <div class="urun-item-sub">Listede olmayan ürün</div>
+      <div class="urow fazla">
+        <div class="urow-ico">+</div>
+        <div class="urow-body">
+          <div class="urow-ttl" style="color:var(--purple)">${kod}</div>
+          <div class="urow-sub">Listede olmayan ürün</div>
         </div>
-        <div class="urun-item-right">
-          <div class="urun-item-count" style="color:var(--purple)">${pkts.length}</div>
-          <div style="font-size:9px;color:var(--purple);margin-top:2px">FAZLA</div>
+        <div class="urow-cnt">
+          <div class="urow-cnt-n" style="color:var(--purple)">${n}</div>
+          <div class="urow-cnt-l">FAZLA</div>
         </div>
       </div>`;
   });
 
-  html += '</div>';
-  container.innerHTML = html;
+  c.innerHTML = html;
 }
 
-// ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // BARKOD İŞLEME
-// ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 function doManual() {
-  const v = document.getElementById('bcInput').value.trim();
+  const v = document.getElementById('bcIn').value.trim();
   if (!v) return;
   doBarcode(v);
-  document.getElementById('bcInput').value = '';
-  document.getElementById('bcInput').focus();
+  document.getElementById('bcIn').value = '';
+  document.getElementById('bcIn').focus();
 }
 
 function doBarcode(raw) {
-  const o = getAktif();
-  if (!o) { toast('Önce oturum başlatın!', 'err'); return; }
+  const o = aktif();
+  if (!o) { toast('Oturum seçin!', 'err'); return; }
 
-  const p = parse(raw);
-  if (p.err) {
-    showResult('err', { ico:'⚠️', ttl:'Parse Hatası', msg:p.err, ham:raw });
-    feedback('err');
-    return;
-  }
+  const p = parseGS1(raw);
+  if (p.err) { showRes('err', '⚠️', 'Parse Hatası', p.err, {}); feedback('err'); return; }
 
-  // MÜKERRER KONTROL — aynı seri no daha önce okutulmuş mu?
+  // MÜKERRER KONTROL
   if (p.seriNo) {
     const once = o.hareketler.find(h => h.seriNo === p.seriNo);
     if (once) {
       const t = new Date(once.ts).toLocaleTimeString('tr-TR');
-      showResult('dup', {
-        ico:'🔁', ttl:'Mükerrer Okutma!',
-        msg:`Bu paket daha önce ${t} saatinde okutulmuştu.`,
-        urunKodu: p.urunKodu, seriNo: p.seriNo, paket: `${p.paketSira}/${p.toplamPaket}`
-      });
+      showRes('dup', '🔁', 'Mükerrer Okutma!',
+        `Bu paket daha önce ${t} saatinde okutuldu.`,
+        { 'Ürün Kodu': p.urunKodu, 'Seri No': p.seriNo, 'Paket': `${p.paketSira}/${p.toplamPaket}` });
       feedback('warn');
-      toast('Bu paket zaten okutulmuş!', 'warn');
+      toast('⚠ Bu paket zaten okutulmuş!', 'warn');
       return;
     }
   }
 
-  // Listedeki ürünle eşleştir
+  // Listede var mı?
   const listeUrun = o.urunler.find(u => u.kod === p.urunKodu);
   const listede = !!listeUrun;
 
-  // Toplam paket sayısını barkoddan al, yoksa listeden
-  if (listeUrun && listeUrun.toplamPaket === 1 && p.toplamPaket > 1) {
+  // Barkoddan gelen toplam paket sayısını ürüne yaz
+  if (listeUrun && p.toplamPaket > 1 && listeUrun.toplamPaket === 1) {
     listeUrun.toplamPaket = p.toplamPaket;
   }
 
-  // Hareketi kaydet
-  const hareket = {
-    id: Date.now(),
-    ts: new Date().toISOString(),
-    urunKodu: p.urunKodu,
-    gtin: p.gtin,
-    seriNo: p.seriNo,
-    paketSira: p.paketSira,
-    toplamPaket: p.toplamPaket,
-    sas: p.sas,
-    fmt: p.fmt,
-    listede,
-    ham: p.ham
+  // Kaydet
+  const h = {
+    id: Date.now(), ts: new Date().toISOString(),
+    urunKodu: p.urunKodu, gtin: p.gtin, seriNo: p.seriNo,
+    paketSira: p.paketSira, toplamPaket: p.toplamPaket,
+    sas: p.sas, fmt: p.fmt, listede, ham: p.ham
   };
+  o.hareketler.push(h);
 
-  o.hareketler.push(hareket);
-  save();
-
-  // Sonuç göster
-  const tamMi = listeUrun ? isUrunTam(o, listeUrun) : false;
-  let tip, ico;
-  if (!listede) {
-    tip = 'warn'; ico = '⚡';
-  } else if (tamMi) {
-    tip = 'ok'; ico = '✅';
+  // Oturum durumunu güncelle
+  const st = getSesStats(o);
+  if (st.okutulan >= st.toplamPkt && st.eksik === 0 && st.fazla === 0) {
+    o.durum = 'tamamlandi';
+  } else if (!listede || st.fazla > 0) {
+    o.durum = 'sorunlu';
   } else {
-    tip = 'ok'; ico = '📦';
+    o.durum = 'devam';
+  }
+  persist();
+
+  // Sonuç
+  const tamMi = listeUrun ? isUrunTam(o, listeUrun) : false;
+  if (!listede) {
+    showRes('warn', '⚡', 'Listede Olmayan Ürün!', 'Bu ürün beklenen listede yok.',
+      { 'Ürün Kodu': p.urunKodu, 'Paket': `${p.paketSira}/${p.toplamPaket}`, 'Seri No': p.seriNo, 'Format': p.fmt });
+    toast('⚡ Listede olmayan ürün!', 'warn');
+  } else if (tamMi) {
+    showRes('ok', '✅', `${listeUrun.ad || p.urunKodu} — Tamamlandı!`, null,
+      { 'Ürün Kodu': p.urunKodu, 'Paket': `${p.paketSira}/${p.toplamPaket}`, 'Seri No': p.seriNo, 'SAS': p.sas });
+    toast('✅ Ürün tamamlandı!', 'ok');
+  } else {
+    showRes('ok', '📦', 'Paket Kabul Edildi',
+      `${p.paketSira}/${p.toplamPaket} paket okutuldu`,
+      { 'Ürün Kodu': p.urunKodu, 'Ürün': listeUrun.ad, 'Seri No': p.seriNo, 'SAS': p.sas });
   }
 
-  showResult(tip, {
-    ico, ttl: listede ? (tamMi ? 'Ürün Tamamlandı! 🎉' : 'Paket Kabul Edildi') : 'Listede Olmayan Ürün!',
-    urunKodu: p.urunKodu,
-    gtin: p.gtin,
-    paket: `${p.paketSira} / ${p.toplamPaket}`,
-    seriNo: p.seriNo,
-    sas: p.sas,
-    fmt: p.fmt,
-    listede: listede ? 'Evet ✓' : 'HAYIR — Fazla!'
-  });
-
   feedback(listede ? 'ok' : 'warn');
-  if (!listede) toast('⚡ Listede olmayan ürün!', 'warn');
-  if (tamMi) toast('✅ ' + (listeUrun.ad || p.urunKodu) + ' tamamlandı!', 'ok');
+  if (DB.url) sendSheets({ action:'addHareket', oturumId:o.id, depo:o.depo, sorumlu:o.sorumlu, ...h });
 
-  // Sheets'e gönder
-  if (S.scriptUrl) sendSheets({ ...hareket, oturumId: o.id, depo: o.depo, sorumlu: o.sorumlu, siparis: o.siparis });
-
-  // UI güncelle
   renderProgress(o);
   renderUrunDurum(o);
 }
 
-function showResult(tip, d) {
-  const area = document.getElementById('resultArea');
-  const fields = Object.entries(d)
-    .filter(([k]) => !['ico','ttl','tip','msg'].includes(k))
-    .map(([k, v]) => `<div class="rf"><div class="rf-lbl">${k}</div><div class="rf-val">${v || '—'}</div></div>`)
-    .join('');
-
-  area.innerHTML = `
-    <div class="result ${tip}">
-      <div class="res-hdr">
-        <span class="res-ico">${d.ico}</span>
-        <span class="res-ttl">${d.ttl}</span>
-      </div>
-      ${d.msg ? `<div class="text-sm text-dim" style="margin-bottom:8px">${d.msg}</div>` : ''}
-      <div class="res-fields">${fields}</div>
+function showRes(tip, ico, ttl, msg, fields) {
+  const fhtml = Object.entries(fields).map(([k,v]) =>
+    `<div class="rf"><div class="rf-l">${k}</div><div class="rf-v">${v||'—'}</div></div>`
+  ).join('');
+  document.getElementById('resArea').innerHTML = `
+    <div class="res ${tip}">
+      <div class="res-hdr"><span class="res-ico">${ico}</span><span class="res-ttl">${ttl}</span></div>
+      ${msg ? `<div class="sm dim" style="margin-bottom:8px">${msg}</div>` : ''}
+      <div class="res-flds">${fhtml}</div>
     </div>`;
 }
 
-// ════════════════════════════════════════════════
-// OTURUM YÖNETİMİ
-// ════════════════════════════════════════════════
-let urunRowCount = 0;
+// ═══════════════════════════════════════════════════
+// PARSING
+// ═══════════════════════════════════════════════════
+function parseGS1(raw) {
+  raw = raw.trim();
+  if (raw.length < 4) return { err: 'Çok kısa' };
 
-function showNewSession() {
-  document.getElementById('newSesForm').style.display = 'block';
-  urunRowCount = 0;
-  document.getElementById('urunListeForm').innerHTML = '';
-  addUrunRow();
-  updateDepoSelect('ns-depo');
-}
-
-function hideNewSession() {
-  document.getElementById('newSesForm').style.display = 'none';
-}
-
-function addUrunRow() {
-  urunRowCount++;
-  const id = 'ur-' + urunRowCount;
-  const div = document.createElement('div');
-  div.id = id;
-  div.style.cssText = 'background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px';
-  div.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <span style="font-size:11px;color:var(--dim);font-weight:700">ÜRÜN ${urunRowCount}</span>
-      <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">✕</button>
-    </div>
-    <div class="row2">
-      <div class="ig"><label class="lbl">Ürün Kodu *</label><input class="inp" placeholder="3200427622" data-field="kod"></div>
-      <div class="ig"><label class="lbl">Ürün Adı</label><input class="inp" placeholder="Milena Koltuk" data-field="ad"></div>
-    </div>
-    <div class="row3">
-      <div class="ig"><label class="lbl">Toplam Paket</label><input class="inp" type="number" placeholder="2" min="1" value="1" data-field="toplamPaket"></div>
-      <div class="ig"><label class="lbl">Adet</label><input class="inp" type="number" placeholder="1" min="1" value="1" data-field="adet"></div>
-      <div class="ig"><label class="lbl">Sipariş No</label><input class="inp" placeholder="DD2026-001" data-field="siparis"></div>
-    </div>
-    <div class="ig"><label class="lbl">Varyant / Spec</label><input class="inp" placeholder="Renk, ölçü vb." data-field="variant"></div>`;
-  document.getElementById('urunListeForm').appendChild(div);
-}
-
-function createSession() {
-  const arac = document.getElementById('ns-arac').value.trim();
-  const siparis = document.getElementById('ns-siparis').value.trim();
-  const depo = document.getElementById('ns-depo').value;
-  const sorumlu = document.getElementById('ns-sorumlu').value.trim();
-
-  if (!arac || !depo || !sorumlu) { toast('Araç no, depo ve sorumlu zorunlu!', 'err'); return; }
-
-  // Ürün listesini topla
-  const urunler = [];
-  document.querySelectorAll('#urunListeForm > div').forEach(row => {
-    const kod = row.querySelector('[data-field="kod"]').value.trim();
-    if (!kod) return;
-    urunler.push({
-      kod,
-      ad: row.querySelector('[data-field="ad"]').value.trim(),
-      toplamPaket: parseInt(row.querySelector('[data-field="toplamPaket"]').value) || 1,
-      adet: parseInt(row.querySelector('[data-field="adet"]').value) || 1,
-      siparis: row.querySelector('[data-field="siparis"]').value.trim(),
-      variant: row.querySelector('[data-field="variant"]').value.trim()
-    });
-  });
-
-  if (urunler.length === 0) { toast('En az 1 ürün ekleyin!', 'err'); return; }
-
-  const o = {
-    id: 'SES-' + Date.now(),
-    ts: new Date().toISOString(),
-    tip: 'kabul',
-    arac, siparis, depo, sorumlu,
-    urunler,
-    hareketler: [],
-    durum: 'aktif'
-  };
-
-  S.oturumlar.unshift(o);
-  S.aktifId = o.id;
-  save();
-
-  // Sheets'e gönder
-  if (S.scriptUrl) sendSheets({ action: 'newSession', ...o });
-
-  hideNewSession();
-  toast('Oturum oluşturuldu!', 'ok');
-  goTab('scan');
-}
-
-function openSession(id) {
-  S.aktifId = id;
-  save();
-  goTab('scan');
-  toast('Oturum açıldı', 'ok');
-}
-
-function endSession() {
-  if (!confirm('Oturumu kapatmak istediğinize emin misiniz?')) return;
-  const o = getAktif();
-  if (o) o.durum = 'kapali';
-  stopCam();
-  S.aktifId = null;
-  save();
-  renderScanPage();
-  toast('Oturum kapatıldı', 'info');
-}
-
-function quickNewSession() {
-  goTab('oturumlar');
-  setTimeout(showNewSession, 100);
-}
-
-function renderOturumlar() {
-  updateDepoSelect('ns-depo');
-  const list = document.getElementById('sesList');
-  if (S.oturumlar.length === 0) {
-    list.innerHTML = '<div class="empty"><div class="empty-ico">▦</div><div class="empty-txt">Henüz oturum yok</div></div>';
-    return;
+  if (raw.startsWith('01') && raw.length > 40) {
+    const gtin = raw.substring(2, 16);
+    const aiPkt = raw.substring(16, 18);
+    let paketSira = 1, seriNo = null;
+    if (aiPkt[0]==='2' && !isNaN(aiPkt[1])) {
+      paketSira = parseInt(aiPkt[1]) || 1;
+      seriNo = raw.substring(18, 36).trim();
+    }
+    let toplamPaket = 1;
+    const i97 = raw.indexOf('97');
+    if (i97 > 40) {
+      const a97 = raw.substring(i97+2, i97+18);
+      const son = parseInt(a97.slice(-1));
+      if (son > 0 && son < 10) toplamPaket = son;
+    }
+    let sas = null;
+    const i95 = raw.indexOf('95');
+    if (i95 > 40) sas = raw.substring(i95+2, i95+12);
+    const urunKodu = raw.slice(-10);
+    return { fmt:'GS1', gtin, urunKodu, seriNo, paketSira, toplamPaket, sas, ham:raw };
   }
 
-  list.innerHTML = '<div class="ses-list">' + S.oturumlar.map(o => {
-    const toplamPkt = o.urunler.reduce((s, u) => s + (u.toplamPaket || 1), 0);
-    const okutulan = o.hareketler.length;
-    const tam = o.urunler.filter(u => isUrunTam(o, u)).length;
-    const aktif = o.id === S.aktifId;
-    const ts = new Date(o.ts).toLocaleDateString('tr-TR', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  if (/^\d{8,14}$/.test(raw)) {
+    return { fmt:'EAN', gtin:raw, urunKodu:raw, seriNo:raw, paketSira:1, toplamPaket:1, sas:null, ham:raw };
+  }
 
-    return `
-      <div class="ses-item" onclick="openSession('${o.id}')">
-        <div class="ses-item-hdr">
-          <div class="ses-item-ttl">${o.arac} <span style="font-size:11px;color:var(--dim)">· ${o.depo}</span></div>
-          <div style="display:flex;gap:5px">
-            ${aktif ? '<span class="badge b-cyan">AKTİF</span>' : ''}
-            <span class="badge ${o.durum === 'kapali' ? 'b-red' : 'b-green'}">${o.durum === 'kapali' ? 'KAPALI' : 'AÇIK'}</span>
-          </div>
-        </div>
-        <div class="ses-item-sub">${o.siparis || '—'} · ${ts}</div>
-        <div class="ses-item-stats">
-          <span class="badge b-cyan">${okutulan}/${toplamPkt} paket</span>
-          <span class="badge b-green">${tam} ürün tam</span>
-          <span class="badge" style="background:rgba(255,255,255,.06);color:var(--dim)">${o.urunler.length} ürün bekleniyor</span>
-        </div>
-      </div>`;
-  }).join('') + '</div>';
+  return { fmt:'RAW', gtin:null, urunKodu:raw.slice(-10), seriNo:raw, paketSira:1, toplamPaket:1, sas:null, ham:raw };
 }
 
-// ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// YARDIMCILAR
+// ═══════════════════════════════════════════════════
+function isUrunTam(o, u) {
+  const tp = u.toplamPaket || 1;
+  const siralar = new Set(o.hareketler.filter(h => h.urunKodu === u.kod).map(h => h.paketSira));
+  for (let i = 1; i <= tp; i++) { if (!siralar.has(i)) return false; }
+  return true;
+}
+
+function getFazla(o) {
+  const bilinen = new Set(o.urunler.map(u => u.kod));
+  return [...new Set(o.hareketler.filter(h => !bilinen.has(h.urunKodu)).map(h => h.urunKodu))];
+}
+
+// ═══════════════════════════════════════════════════
+// KAMERA
+// ═══════════════════════════════════════════════════
+let qrSc = null;
+function startCam() {
+  if (!aktif()) { toast('Oturum seçin!', 'err'); return; }
+  document.getElementById('camCard').style.display = 'block';
+  document.getElementById('manCard').style.display = 'none';
+  DB.cam = true;
+  qrSc = new Html5Qrcode('qr-reader');
+  qrSc.start({ facingMode:'environment' },
+    { fps:10, qrbox:{width:240,height:240}, supportedScanTypes:[0,1] },
+    txt => {
+      if (DB.cool) return;
+      DB.cool = true; setTimeout(()=>{ DB.cool=false; }, 2500);
+      doBarcode(txt);
+    }, ()=>{}).catch(()=>{ toast('Kamera açılamadı','err'); stopCam(); });
+}
+
+function stopCam() {
+  if (qrSc) { qrSc.stop().catch(()=>{}); qrSc = null; }
+  DB.cam = false;
+  document.getElementById('camCard').style.display = 'none';
+  document.getElementById('manCard').style.display = aktif() ? 'block' : 'none';
+}
+
+// ═══════════════════════════════════════════════════
 // RAPOR
-// ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+function goRapor(id) {
+  goTab('rapor');
+  setTimeout(() => {
+    document.getElementById('raporSel').value = id;
+    loadRapor();
+  }, 50);
+}
+
 function renderRaporSelect() {
-  const sel = document.getElementById('raporSes');
-  sel.innerHTML = '<option value="">Oturum seçin...</option>' +
-    S.oturumlar.map(o => `<option value="${o.id}">${o.arac} — ${o.siparis || '—'} (${new Date(o.ts).toLocaleDateString('tr-TR')})</option>`).join('');
+  const sel = document.getElementById('raporSel');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Seçin...</option>' +
+    DB.oturumlar.map(o => `<option value="${o.id}">${o.id} — ${o.firma||'—'} (${o.tarih||'—'})</option>`).join('');
+  if (cur) sel.value = cur;
 }
 
 function loadRapor() {
-  const id = document.getElementById('raporSes').value;
+  const id = document.getElementById('raporSel').value;
   if (!id) return;
-  const o = S.oturumlar.find(x => x.id === id);
+  const o = DB.oturumlar.find(x => x.id === id);
   if (!o) return;
 
-  const tam = o.urunler.filter(u => isUrunTam(o, u));
+  const st   = getSesStats(o);
+  const tam  = o.urunler.filter(u => isUrunTam(o, u));
   const eksik = o.urunler.filter(u => !isUrunTam(o, u));
-  const fazla = getFazlaUrunler(o);
-  const toplamPkt = o.urunler.reduce((s, u) => s + (u.toplamPaket || 1), 0);
+  const fazla = getFazla(o);
   const mukerer = (() => {
     const seen = new Set(), dups = [];
     o.hareketler.forEach(h => {
@@ -874,223 +932,233 @@ function loadRapor() {
     return dups;
   })();
 
+  const tipLabel = o.tip === 'kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
+
   let html = `
+    <div class="card">
+      <div class="ct">Oturum Bilgisi</div>
+      <div class="g2" style="font-size:12px;gap:6px">
+        <div><span class="dim">ID: </span><span class="bold mono">${o.id}</span></div>
+        <div><span class="dim">Tip: </span>${tipLabel}</div>
+        <div><span class="dim">Depo: </span>${o.depo}</div>
+        <div><span class="dim">Firma: </span>${o.firma||'—'}</div>
+        <div><span class="dim">Plaka: </span>${o.plaka||'—'}</div>
+        <div><span class="dim">Tarih: </span>${o.tarih||'—'}</div>
+        <div><span class="dim">Sorumlu: </span>${o.sorumlu}</div>
+        <div>${getDurumBadge(o)}</div>
+      </div>
+    </div>
     <div class="st-grid">
-      <div class="st-card"><div class="st-val" style="color:var(--green)">${tam.length}</div><div class="st-lbl">Tam Ürün</div></div>
-      <div class="st-card"><div class="st-val" style="color:var(--red)">${eksik.length}</div><div class="st-lbl">Eksik Ürün</div></div>
-      <div class="st-card"><div class="st-val" style="color:var(--purple)">${fazla.length}</div><div class="st-lbl">Fazla Ürün</div></div>
-      <div class="st-card"><div class="st-val" style="color:var(--warn)">${mukerer.length}</div><div class="st-lbl">Mükerrer</div></div>
+      <div class="st-card"><div class="st-v" style="color:var(--green)">${tam.length}</div><div class="st-l">Tam Ürün</div></div>
+      <div class="st-card"><div class="st-v" style="color:var(--red)">${eksik.length}</div><div class="st-l">Eksik Ürün</div></div>
+      <div class="st-card"><div class="st-v" style="color:var(--purple)">${fazla.length}</div><div class="st-l">Fazla Ürün</div></div>
+      <div class="st-card"><div class="st-v" style="color:var(--warn)">${mukerer.length}</div><div class="st-l">Mükerrer</div></div>
     </div>`;
 
-  if (tam.length > 0) {
-    html += `<div class="rapor-sec"><div class="rapor-ttl" style="color:var(--green)">✓ Tam Gelen Ürünler (${tam.length})</div>`;
-    tam.forEach(u => {
-      html += `<div class="rapor-item"><div><div class="rapor-item-lft">${u.ad || u.kod}</div><div class="rapor-item-sub">${u.kod} · ${u.toplamPaket} paket</div></div><span class="badge b-green">TAM</span></div>`;
-    });
+  if (tam.length) {
+    html += `<div class="rblock"><div class="rttl" style="color:var(--green)">✓ Tam Gelen (${tam.length})</div>`;
+    tam.forEach(u => html += `
+      <div class="ritem">
+        <div><div style="font-size:13px;font-weight:700">${u.ad||u.kod}</div>
+        <div class="dim" style="font-size:10px;font-family:var(--mono)">${u.kod} · ${u.toplamPaket} paket${u.musteri?' · '+u.musteri:''}</div></div>
+        <span class="b bg">TAM</span></div>`);
     html += '</div>';
   }
 
-  if (eksik.length > 0) {
-    html += `<div class="rapor-sec"><div class="rapor-ttl" style="color:var(--red)">✗ Eksik Ürünler (${eksik.length})</div>`;
+  if (eksik.length) {
+    html += `<div class="rblock"><div class="rttl" style="color:var(--red)">✗ Eksik (${eksik.length})</div>`;
     eksik.forEach(u => {
-      const okutulan = o.hareketler.filter(h => h.urunKodu === u.kod).length;
-      html += `<div class="rapor-item"><div><div class="rapor-item-lft">${u.ad || u.kod}</div><div class="rapor-item-sub">${u.kod} · ${okutulan}/${u.toplamPaket} paket okutuldu</div></div><span class="badge b-red">EKSİK</span></div>`;
+      const ok = o.hareketler.filter(h => h.urunKodu === u.kod).length;
+      const siralar = new Set(o.hareketler.filter(h=>h.urunKodu===u.kod).map(h=>h.paketSira));
+      let pkts = '';
+      for (let i=1;i<=u.toplamPaket;i++) pkts += `<span class="pkb ${siralar.has(i)?'ok':'no'}" style="display:inline-flex;width:18px;height:18px;border-radius:4px;align-items:center;justify-content:center;font-size:9px;font-weight:700;margin-right:2px">${i}</span>`;
+      html += `
+        <div class="ritem">
+          <div><div style="font-size:13px;font-weight:700">${u.ad||u.kod}</div>
+          <div class="dim" style="font-size:10px;font-family:var(--mono)">${u.kod} · ${ok}/${u.toplamPaket} paket</div>
+          <div style="margin-top:4px">${pkts}</div></div>
+          <span class="b br">EKSİK</span></div>`;
     });
     html += '</div>';
   }
 
-  if (fazla.length > 0) {
-    html += `<div class="rapor-sec"><div class="rapor-ttl" style="color:var(--purple)">+ Fazla Gelen Ürünler (${fazla.length})</div>`;
+  if (fazla.length) {
+    html += `<div class="rblock"><div class="rttl" style="color:var(--purple)">+ Fazla (${fazla.length})</div>`;
     fazla.forEach(kod => {
-      const pkts = o.hareketler.filter(h => h.urunKodu === kod).length;
-      html += `<div class="rapor-item"><div><div class="rapor-item-lft">${kod}</div><div class="rapor-item-sub">Listede yok · ${pkts} paket okutuldu</div></div><span class="badge b-purple">FAZLA</span></div>`;
+      const n = o.hareketler.filter(h=>h.urunKodu===kod).length;
+      html += `<div class="ritem"><div><div style="font-size:13px;font-weight:700;color:var(--purple)">${kod}</div><div class="dim" style="font-size:10px">Listede yok · ${n} paket</div></div><span class="b bp">FAZLA</span></div>`;
     });
     html += '</div>';
   }
 
-  if (mukerer.length > 0) {
-    html += `<div class="rapor-sec"><div class="rapor-ttl" style="color:var(--warn)">⚠ Mükerrer Okutmalar (${mukerer.length})</div>`;
+  if (mukerer.length) {
+    html += `<div class="rblock"><div class="rttl" style="color:var(--warn)">⚠ Mükerrer (${mukerer.length})</div>`;
     mukerer.forEach(h => {
-      html += `<div class="rapor-item"><div><div class="rapor-item-lft">${h.urunKodu}</div><div class="rapor-item-sub">Seri: ${h.seriNo || '—'} · ${new Date(h.ts).toLocaleTimeString('tr-TR')}</div></div><span class="badge b-warn">MÜKERRER</span></div>`;
+      html += `<div class="ritem"><div><div style="font-size:13px;font-weight:700">${h.urunKodu}</div><div class="dim" style="font-size:10px;font-family:var(--mono)">${h.seriNo||'—'} · ${new Date(h.ts).toLocaleTimeString('tr-TR')}</div></div><span class="b bw">MÜKERRER</span></div>`;
     });
     html += '</div>';
   }
 
-  document.getElementById('raporContent').innerHTML = html;
+  document.getElementById('raporBody').innerHTML = html;
 }
 
-// ════════════════════════════════════════════════
-// KAMERA
-// ════════════════════════════════════════════════
-let qrScanner = null;
-
-function startCam() {
-  const o = getAktif();
-  if (!o) { toast('Önce oturum başlatın!', 'err'); return; }
-  document.getElementById('camCard').style.display = 'block';
-  document.getElementById('manCard').style.display = 'none';
-  S.camActive = true;
-
-  qrScanner = new Html5Qrcode('qr-reader');
-  qrScanner.start(
-    { facingMode: 'environment' },
-    { fps: 10, qrbox: { width: 260, height: 260 }, supportedScanTypes: [0, 1] },
-    (txt) => {
-      if (S.cooldown) return;
-      S.cooldown = true;
-      setTimeout(() => { S.cooldown = false; }, 2500);
-      doBarcode(txt);
-    },
-    () => {}
-  ).catch(e => {
-    toast('Kamera açılamadı', 'err');
-    stopCam();
-  });
-}
-
-function stopCam() {
-  if (qrScanner) {
-    qrScanner.stop().catch(() => {});
-    qrScanner = null;
-  }
-  S.camActive = false;
-  document.getElementById('camCard').style.display = 'none';
-  document.getElementById('manCard').style.display = getAktif() ? 'block' : 'none';
-}
-
-// ════════════════════════════════════════════════
-// GOOGLE SHEETS
-// ════════════════════════════════════════════════
-function sendSheets(data) {
-  if (!S.scriptUrl) return;
-  try {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = S.scriptUrl;
-    form.target = 'hif';
-    form.style.display = 'none';
-
-    // action field
-    const allData = { action: data.action || 'addHareket', ...data };
-    for (const [k, v] of Object.entries(allData)) {
-      if (typeof v === 'object') continue;
-      const inp = document.createElement('input');
-      inp.type = 'hidden';
-      inp.name = k;
-      inp.value = String(v || '');
-      form.appendChild(inp);
-    }
-    document.body.appendChild(form);
-    form.submit();
-    setTimeout(() => { document.body.removeChild(form); setDot('ok'); }, 800);
-  } catch(e) { setDot('err'); }
-}
-
-// ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // AYARLAR
-// ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 function renderAyarlar() {
-  document.getElementById('scriptUrl').value = S.scriptUrl;
+  document.getElementById('cfgUrl').value = DB.url;
+  document.getElementById('colKod').value    = DB.cols.kod;
+  document.getElementById('colAd').value     = DB.cols.ad;
+  document.getElementById('colMiktar').value = DB.cols.miktar;
+  document.getElementById('colDetay').value  = DB.cols.detay;
+  document.getElementById('colSas').value    = DB.cols.sas;
+  document.getElementById('colMusteri').value= DB.cols.musteri;
   renderDepoList();
 }
 
-function saveAyarlar() {
-  S.scriptUrl = document.getElementById('scriptUrl').value.trim();
-  localStorage.setItem('dv2_url', S.scriptUrl);
-  toast('Ayarlar kaydedildi', 'ok');
-  if (S.scriptUrl) testBag();
+function saveConfig() {
+  DB.url = document.getElementById('cfgUrl').value.trim();
+  localStorage.setItem('d3_url', DB.url);
+  toast('Kaydedildi', 'ok');
+  if (DB.url) testConn();
 }
 
-async function testBag() {
-  try {
-    await fetch(S.scriptUrl + '?action=ping', { mode: 'no-cors' });
-    setDot('ok');
-    toast('Bağlantı OK ✓', 'ok');
-  } catch(e) { setDot('err'); }
+function saveCols() {
+  DB.cols = {
+    kod:     parseInt(document.getElementById('colKod').value),
+    ad:      parseInt(document.getElementById('colAd').value),
+    miktar:  parseInt(document.getElementById('colMiktar').value),
+    detay:   parseInt(document.getElementById('colDetay').value),
+    sas:     parseInt(document.getElementById('colSas').value),
+    musteri: parseInt(document.getElementById('colMusteri').value)
+  };
+  localStorage.setItem('d3_cols', JSON.stringify(DB.cols));
+  toast('Sütun ayarları kaydedildi', 'ok');
+}
+
+async function testConn() {
+  try { await fetch(DB.url+'?action=ping',{mode:'no-cors'}); setDot('ok'); toast('Bağlantı OK ✓','ok'); }
+  catch(e) { setDot('err'); }
 }
 
 function addDepo() {
   const v = document.getElementById('newDepo').value.trim();
-  if (!v || S.depolar.includes(v)) return;
-  S.depolar.push(v);
-  localStorage.setItem('dv2_depolar', JSON.stringify(S.depolar));
+  if (!v || DB.depolar.includes(v)) return;
+  DB.depolar.push(v);
+  localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
   document.getElementById('newDepo').value = '';
   renderDepoList();
-  updateDepoSelect('ns-depo');
 }
 
 function renderDepoList() {
-  document.getElementById('depoListEl').innerHTML = S.depolar.map((d, i) => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:14px;font-weight:600">${d}</span>
-      <button onclick="removeDepo(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px">✕</button>
+  document.getElementById('depoListEl').innerHTML = DB.depolar.map((d,i) =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px">${d}</span>
+      <button onclick="rmDepo(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:15px">✕</button>
     </div>`).join('');
 }
 
-function removeDepo(i) {
-  S.depolar.splice(i, 1);
-  localStorage.setItem('dv2_depolar', JSON.stringify(S.depolar));
+function rmDepo(i) {
+  DB.depolar.splice(i,1);
+  localStorage.setItem('d3_depolar',JSON.stringify(DB.depolar));
   renderDepoList();
 }
 
-function updateDepoSelect(elId) {
-  const sel = document.getElementById(elId);
-  if (!sel) return;
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">Seçin...</option>' +
-    S.depolar.map(d => `<option${d===cur?' selected':''}>${d}</option>`).join('');
+function fillDepoSelect(id) {
+  const s = document.getElementById(id);
+  if (!s) return;
+  const cur = s.value;
+  s.innerHTML = '<option value="">Seçin...</option>' +
+    DB.depolar.map(d=>`<option${d===cur?' selected':''}>${d}</option>`).join('');
 }
 
-// ════════════════════════════════════════════════
-// TOAST & FEEDBACK
-// ════════════════════════════════════════════════
-function toast(msg, type='info') {
-  const c = document.getElementById('toasts');
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2500);
-}
-
-function setDot(status) {
-  const d = document.getElementById('dot');
-  const t = document.getElementById('dotTxt');
-  if (status==='ok') { d.className='dot ok'; t.textContent='Bağlı'; }
-  else if (status==='err') { d.className='dot err'; t.textContent='Hata'; }
-  else { d.className='dot'; t.textContent='...'; }
-}
-
-function feedback(type) {
+// ═══════════════════════════════════════════════════
+// GOOGLE SHEETS
+// ═══════════════════════════════════════════════════
+function sendSheets(data) {
+  if (!DB.url) return;
   try {
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.frequency.value = type==='ok' ? 880 : type==='warn' ? 440 : 220;
-    o.type = type==='ok' ? 'sine' : 'sawtooth';
-    g.gain.setValueAtTime(.25, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+.3);
-    o.start(); o.stop(ctx.currentTime+.3);
-  } catch(e) {}
-  if (navigator.vibrate) navigator.vibrate(type==='ok' ? [40] : [80,40,80]);
+    const f = document.createElement('form');
+    f.method='POST'; f.action=DB.url; f.target='hif_frame'; f.style.display='none';
+    for (const [k,v] of Object.entries(data)) {
+      if (typeof v === 'object') continue;
+      const inp = document.createElement('input');
+      inp.type='hidden'; inp.name=k; inp.value=String(v||'');
+      f.appendChild(inp);
+    }
+    document.body.appendChild(f);
+    f.submit();
+    setTimeout(()=>{ document.body.removeChild(f); setDot('ok'); }, 800);
+  } catch(e){ setDot('err'); }
 }
 
-// ════════════════════════════════════════════════
-// USB BARKOD (Enter)
-// ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// TOAST / FEEDBACK / DOT
+// ═══════════════════════════════════════════════════
+function toast(msg, type='info') {
+  const c=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`; t.textContent=msg;
+  c.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); },2500);
+}
+
+function setDot(s) {
+  const d=document.getElementById('dot'), t=document.getElementById('dotTxt');
+  if(s==='ok'){d.className='dot ok';t.textContent='Bağlı';}
+  else if(s==='err'){d.className='dot err';t.textContent='Hata';}
+  else{d.className='dot';t.textContent='...';}
+}
+
+function feedback(t) {
+  try {
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=t==='ok'?880:t==='warn'?440:220;
+    o.type=t==='ok'?'sine':'sawtooth';
+    g.gain.setValueAtTime(.2,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.3);
+    o.start();o.stop(ctx.currentTime+.3);
+  } catch(e){}
+  if(navigator.vibrate) navigator.vibrate(t==='ok'?[35]:[70,35,70]);
+}
+
+// ═══════════════════════════════════════════════════
+// TAB
+// ═══════════════════════════════════════════════════
+function goTab(name) {
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('on');
+  document.getElementById('t-'+name).classList.add('on');
+  if(name==='scan')      renderScanPage();
+  if(name==='oturumlar') renderOturumlar();
+  if(name==='rapor')     renderRaporSelect();
+  if(name==='ayarlar')   renderAyarlar();
+}
+
+// ═══════════════════════════════════════════════════
+// USB BARKOD
+// ═══════════════════════════════════════════════════
 document.addEventListener('keydown', e => {
-  if (e.key==='Enter' && document.getElementById('bcInput')===document.activeElement) doManual();
+  if(e.key==='Enter' && document.getElementById('bcIn')===document.activeElement) doManual();
 });
-document.getElementById('bcInput').addEventListener('blur', () => {
-  if (getAktif() && !S.camActive) setTimeout(()=>document.getElementById('bcInput').focus(), 100);
+document.getElementById('bcIn').addEventListener('blur', () => {
+  if(aktif()&&!DB.cam) setTimeout(()=>document.getElementById('bcIn').focus(),100);
 });
 
-// ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // INIT
-// ════════════════════════════════════════════════
-updateDepoSelect('ns-depo');
-renderScanPage();
-if (S.scriptUrl) setDot('ok');
+// ═══════════════════════════════════════════════════
+fillDepoSelect('nf-depo');
+renderOturumlar();
+if(DB.url) setDot('ok');
+
+// iframe gönderim için
+const hif = document.createElement('iframe');
+hif.name='hif_frame'; hif.style.display='none';
+document.body.appendChild(hif);
 </script>
 </body>
 </html>
