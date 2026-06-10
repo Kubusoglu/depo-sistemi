@@ -359,12 +359,12 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
     <div class="ct">Sütun Eşleştirme</div>
     <p class="sm dim" style="margin-bottom:10px">Yapıştırdığınız tablodaki sütun sıralarını belirtin (0'dan başlar)</p>
     <div class="g2">
-      <div class="ig"><label class="lbl">Malzeme Kodu Sütunu</label><input class="inp" type="number" id="colKod" value="3" min="0"></div>
-      <div class="ig"><label class="lbl">Ürün Adı Sütunu</label><input class="inp" type="number" id="colAd" value="4" min="0"></div>
-      <div class="ig"><label class="lbl">Miktar Sütunu</label><input class="inp" type="number" id="colMiktar" value="6" min="0"></div>
-      <div class="ig"><label class="lbl">Ürün Detay Sütunu</label><input class="inp" type="number" id="colDetay" value="5" min="0"></div>
+      <div class="ig"><label class="lbl">Malzeme Kodu Sütunu</label><input class="inp" type="number" id="colKod" value="4" min="0"></div>
+      <div class="ig"><label class="lbl">Ürün Adı Sütunu</label><input class="inp" type="number" id="colAd" value="5" min="0"></div>
+      <div class="ig"><label class="lbl">Miktar Sütunu</label><input class="inp" type="number" id="colMiktar" value="7" min="0"></div>
+      <div class="ig"><label class="lbl">Ürün Detay Sütunu</label><input class="inp" type="number" id="colDetay" value="6" min="0"></div>
       <div class="ig"><label class="lbl">SAS Kalem No Sütunu</label><input class="inp" type="number" id="colSas" value="0" min="0"></div>
-      <div class="ig"><label class="lbl">Müşteri Adı Sütunu</label><input class="inp" type="number" id="colMusteri" value="2" min="0"></div>
+      <div class="ig"><label class="lbl">Müşteri Adı Sütunu</label><input class="inp" type="number" id="colMusteri" value="3" min="0"></div>
     </div>
     <button class="btn btn-g" onclick="saveCols()" style="font-size:12px">Kaydet</button>
   </div>
@@ -379,7 +379,7 @@ const DB = {
   depolar:  JSON.parse(localStorage.getItem('d3_depolar') || '["İstanbul Ana Depo","Ankara Depo","İzmir Depo","Bursa Depo"]'),
   oturumlar:JSON.parse(localStorage.getItem('d3_ses') || '[]'),
   aktifId:  localStorage.getItem('d3_aktif') || null,
-  cols:     JSON.parse(localStorage.getItem('d3_cols') || '{"kod":3,"ad":4,"miktar":6,"detay":5,"sas":0,"musteri":2}'),
+  cols:     JSON.parse(localStorage.getItem('d3_cols') || '{"kod":4,"ad":5,"miktar":7,"detay":6,"sas":0,"musteri":3}'),
   cam: false, cool: false
 };
 
@@ -441,7 +441,7 @@ function parseOnizleme() {
     if (existing) {
       existing.miktar += miktar; // miktarı topla
     } else {
-      parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: miktar });
+      parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: 1 });
     }
   });
 
@@ -494,6 +494,18 @@ function openNewForm() {
 
 function closeNewForm() {
   document.getElementById('newForm').style.display = 'none';
+  document.getElementById('nf-tip').value = 'kabul';
+  document.getElementById('nf-depo').value = '';
+  document.getElementById('nf-plaka').value = '';
+  document.getElementById('nf-firma').value = '';
+  document.getElementById('nf-tarih').value = new Date().toISOString().slice(0,10);
+  document.getElementById('nf-sorumlu').value = '';
+  document.getElementById('nf-liste').value = '';
+  document.getElementById('xlsxLabel').textContent = 'Dosya seçin veya sürükleyin...';
+  document.getElementById('xlsxFile').value = '';
+  document.getElementById('onizleme').style.display = 'none';
+  document.getElementById('oturumOlusturDiv').style.display = 'none';
+  document.getElementById('btnOnizle').textContent = 'Listeyi Analiz Et →';
   parsedUrunler = [];
 }
 
