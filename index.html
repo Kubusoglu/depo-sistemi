@@ -1629,11 +1629,14 @@ function sqRetryNow() {
 // VERİ AKTARIMI
 // ═══════════════════════════════════════════════════
 function exportData() {
+  // Şifreleri maskele (güvenlik)
+  const kullanicilarExport = DB.kullanicilar.map(k => ({...k}));
   const payload = {
-    v: 2,
+    v: 3,
     ts: new Date().toISOString(),
-    oturumlar: DB.oturumlar,
-    depolar: DB.depolar
+    oturumlar:    DB.oturumlar,
+    depolar:      DB.depolar,
+    kullanicilar: kullanicilarExport
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
@@ -1652,23 +1655,43 @@ function importData(input) {
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
-      if (!data.oturumlar) { toast('Geçersiz dosya', 'err'); return; }
 
-      const yeni    = data.oturumlar.filter(o => !DB.oturumlar.find(x => x.id === o.id));
-      const guncell = data.oturumlar.filter(o =>  DB.oturumlar.find(x => x.id === o.id));
+      let ozet = [];
 
-      // Yenileri ekle, mevcut olanlara dokunma
-      DB.oturumlar.push(...yeni);
-
-      // Depolar varsa birleştir
-      if (data.depolar) {
-        data.depolar.forEach(d => { if (!DB.depolar.includes(d)) DB.depolar.push(d); });
-        localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
+      // Oturumlar
+      if (Array.isArray(data.oturumlar)) {
+        const yeni = data.oturumlar.filter(o => !DB.oturumlar.find(x => x.id === o.id));
+        DB.oturumlar.push(...yeni);
+        ozet.push(`${yeni.length} yeni oturum`);
+        persist();
+        renderOturumlar();
       }
 
-      persist();
-      renderOturumlar();
-      toast(`${yeni.length} yeni oturum eklendi, ${guncell.length} zaten mevcut`, 'ok');
+      // Depolar
+      if (Array.isArray(data.depolar)) {
+        let depEklenen = 0;
+        data.depolar.forEach(d => {
+          if (!DB.depolar.includes(d)) { DB.depolar.push(d); depEklenen++; }
+        });
+        localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
+        fillDepoSelect('nf-depo');
+        ozet.push(`${depEklenen} yeni depo`);
+      }
+
+      // Kullanıcılar (sadece admin içe aktarabilir)
+      if (Array.isArray(data.kullanicilar) && isAdmin()) {
+        let kulEklenen = 0;
+        data.kullanicilar.forEach(k => {
+          if (!DB.kullanicilar.find(x => x.id === k.id || x.ad === k.ad)) {
+            DB.kullanicilar.push(k);
+            kulEklenen++;
+          }
+        });
+        persistUsers();
+        ozet.push(`${kulEklenen} yeni kullanıcı`);
+      }
+
+      toast('İçe aktarıldı: ' + (ozet.join(', ') || 'değişiklik yok'), 'ok');
     } catch(err) {
       toast('Dosya okunamadı: ' + err.message, 'err');
     }
