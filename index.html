@@ -431,6 +431,8 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
       <button class="btn btn-p btn-sm" onclick="saveConfig()">Kaydet & Test Et</button>
       <button class="btn btn-g btn-sm" onclick="sqRetryNow()">↻ Kuyruğu Gönder</button>
     </div>
+    <button class="btn btn-g btn-sm" style="width:100%;margin-bottom:8px" onclick="manualSync()">☁ Sheets'ten Senkronize Et</button>
+    <div id="syncStatus" style="display:none;font-size:11px;padding:8px 10px;border-radius:var(--r8);border:1px solid;margin-bottom:8px"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:7px 10px;background:var(--s2);border-radius:var(--r8);border:1px solid var(--border)">
       <span style="color:var(--dim)">Gönderim Kuyruğu</span>
       <span id="qPending" style="font-family:var(--mono);color:var(--warn)">—</span>
@@ -554,13 +556,15 @@ function startApp() {
   if (DB.url) { setDot('ok'); sqFlush(); syncFromSheets(); }
 }
 
-async function syncFromSheets() {
+async function syncFromSheets(silent) {
   if (!DB.url) return;
+  setSyncStatus('loading', '⏳ Sheets\'e bağlanıyor...');
   try {
     const res = await fetch(DB.url + '?action=getSessions', { mode: 'cors' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!res.ok) throw new Error('Sunucu hatası: HTTP ' + res.status);
     const json = await res.json();
-    if (!json.ok || !Array.isArray(json.data)) return;
+    if (!json.ok) throw new Error('Script hatası: ' + (json.err || 'Bilinmiyor'));
+    if (!Array.isArray(json.data)) throw new Error('getSessions tanımsız — Apps Script\'i güncelleyin');
 
     let eklenen = 0, guncellenen = 0;
     json.data.forEach(remote => {
@@ -569,27 +573,39 @@ async function syncFromSheets() {
       if (!local) {
         DB.oturumlar.push(remote);
         eklenen++;
-      } else {
-        // Sheets'teki durum/kapali bilgisi daha güncel olabilir
-        if (remote.kapali && !local.kapali) {
-          local.kapali = true;
-          local.durum  = remote.durum;
-          local.hatali = remote.hatali || false;
-          guncellenen++;
-        }
+      } else if (remote.kapali && !local.kapali) {
+        local.kapali = true;
+        local.durum  = remote.durum;
+        local.hatali = remote.hatali || false;
+        guncellenen++;
       }
     });
 
     if (eklenen > 0 || guncellenen > 0) {
       persist();
       renderOturumlar();
-      toast(`Sheets'ten ${eklenen} yeni, ${guncellenen} güncellendi`, 'info');
     }
     setDot('ok');
+    setSyncStatus('ok', `✓ Senkronize edildi — ${json.data.length} oturum alındı, ${eklenen} yeni eklendi`);
+    if (!silent) toast(`${eklenen} yeni oturum eklendi`, 'ok');
   } catch(e) {
-    // Sessizce geç — no-cors modda zaten response okunamaz olabilir
+    setDot('err');
+    setSyncStatus('err', '✗ Hata: ' + e.message);
+    if (!silent) toast('Senkronizasyon hatası: ' + e.message, 'err');
   }
 }
+
+function setSyncStatus(type, msg) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  el.style.display = 'block';
+  if (type === 'ok')      { el.style.background='var(--green-soft)'; el.style.borderColor='rgba(74,222,128,.25)'; el.style.color='#4ade80'; }
+  else if (type === 'err'){ el.style.background='var(--red-soft)';   el.style.borderColor='rgba(248,113,113,.25)'; el.style.color='#f87171'; }
+  else                    { el.style.background='var(--blue-soft)';  el.style.borderColor='rgba(96,165,250,.25)';  el.style.color='#60a5fa'; }
+  el.textContent = msg;
+}
+
+function manualSync() { syncFromSheets(false); }
 
 function sifreDegistir() {
   const eski  = document.getElementById('eskiSifre').value;
