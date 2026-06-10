@@ -18,7 +18,6 @@
   --green:#16a34a;--green-soft:rgba(22,163,74,.1);
   --warn:#d97706;--warn-soft:rgba(217,119,6,.1);
   --purple:#7c3aed;--purple-soft:rgba(124,58,237,.1);
-  --slate:#64748b;
   --text:#e6edf3;--dim:#7d8590;--dim2:#adbac7;
   --mono:'IBM Plex Mono',monospace;--main:'Inter',sans-serif;
   --r6:6px;--r8:8px;--r10:10px;--r12:12px;
@@ -27,34 +26,48 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--text);font-family:var(--main);min-height:100vh;overflow-x:hidden;font-size:14px;line-height:1.5}
 
-/* HEADER */
+/* ── LOGIN ── */
+.login-overlay{position:fixed;inset:0;background:var(--bg);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:var(--s1);border:1px solid var(--border);border-radius:var(--r12);padding:32px 28px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.login-mark{width:40px;height:40px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;font-family:var(--mono)}
+.login-title{font-size:16px;font-weight:700}
+.login-sub{font-size:11px;color:var(--dim);margin-top:2px}
+.login-err{font-size:12px;color:#f87171;margin-top:8px;min-height:18px}
+
+/* ── HEADER ── */
 .hdr{position:sticky;top:0;z-index:200;background:rgba(13,17,23,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between}
 .logo{display:flex;align-items:center;gap:10px}
-.logo-mark{width:28px;height:28px;background:var(--blue);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;letter-spacing:0;font-family:var(--mono);flex-shrink:0}
-.logo-text{font-size:13px;font-weight:600;color:var(--text);letter-spacing:.2px}
-.logo-sub{font-size:10px;color:var(--dim);font-weight:400;margin-top:-2px}
-.conn{display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--mono);color:var(--dim)}
+.logo-mark{width:28px;height:28px;background:var(--blue);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;font-family:var(--mono);flex-shrink:0}
+.logo-text{font-size:13px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:10px;color:var(--dim);margin-top:-2px}
+.hdr-right{display:flex;align-items:center;gap:12px}
+.conn{display:flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);color:var(--dim)}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0}
 .dot.ok{background:#22c55e}
 .dot.err{background:var(--red)}
+.user-chip{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:4px 10px 4px 6px;cursor:pointer;transition:border-color .15s}
+.user-chip:hover{border-color:var(--border2)}
+.user-av{width:22px;height:22px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-size:11px;font-weight:500;color:var(--dim2)}
 
-/* TABS */
+/* ── TABS ── */
 .tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:52px;z-index:199}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex:1;min-width:72px;padding:0 4px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:9px;font-weight:600;letter-spacing:.6px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;text-transform:uppercase}
+.tab{flex:1;min-width:70px;padding:0 4px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:9px;font-weight:600;letter-spacing:.6px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;text-transform:uppercase}
 .tab.on{color:var(--blue);border-bottom-color:var(--blue)}
 .tab i{font-size:14px;font-style:normal;line-height:1}
 
-/* PAGE */
+/* ── PAGE ── */
 .pg{display:none;padding:16px;max-width:720px;margin:0 auto;padding-bottom:48px}
 .pg.on{display:block}
 
-/* CARD */
+/* ── CARD ── */
 .card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r10);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
 .ct{font-size:10px;font-weight:600;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .ct::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* FORM */
+/* ── FORM ── */
 .ig{margin-bottom:10px}
 .lbl{font-size:11px;font-weight:500;color:var(--dim2);margin-bottom:5px;display:block}
 .inp{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:var(--r8);padding:9px 12px;color:var(--text);font-family:var(--main);font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none}
@@ -64,7 +77,7 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 
-/* BUTTONS */
+/* ── BUTTONS ── */
 .btn{width:100%;padding:10px 16px;border-radius:var(--r8);border:none;font-family:var(--main);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.1px;display:flex;align-items:center;justify-content:center;gap:6px}
 .btn:active{transform:scale(.98);opacity:.9}
 .btn-p{background:var(--blue);color:#fff}
@@ -79,7 +92,7 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
 .fr{display:flex;gap:8px}
 .fr .btn{flex:1}
 
-/* BADGE */
+/* ── BADGE ── */
 .b{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.3px;white-space:nowrap;font-family:var(--mono)}
 .bc{background:var(--blue-soft);color:#60a5fa;border:1px solid rgba(96,165,250,.2)}
 .br{background:var(--red-soft);color:#f87171;border:1px solid rgba(248,113,113,.2)}
@@ -88,11 +101,12 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
 .bp{background:var(--purple-soft);color:#a78bfa;border:1px solid rgba(167,139,250,.2)}
 .bb{background:var(--blue-soft);color:#93c5fd;border:1px solid rgba(147,197,253,.2)}
 
-/* OTURUM KARTI */
-.oses{background:var(--s1);border:1px solid var(--border);border-radius:var(--r10);padding:14px 14px 14px 18px;margin-bottom:10px;cursor:pointer;transition:border-color .15s,box-shadow .15s;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+/* ── OTURUM KARTI ── */
+.oses{background:var(--s1);border:1px solid var(--border);border-radius:var(--r10);padding:14px 14px 14px 18px;margin-bottom:10px;transition:border-color .15s,box-shadow .15s;position:relative;overflow:hidden;box-shadow:var(--shadow)}
 .oses::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
 .oses.kabul::before{background:var(--blue)}
 .oses.cikis::before{background:var(--red)}
+.oses.hatali::before{background:#f97316}
 .oses:hover{border-color:var(--border2)}
 .oses.aktif{border-color:rgba(37,99,235,.5);box-shadow:0 0 0 1px rgba(37,99,235,.2),var(--shadow)}
 .oses-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
@@ -103,8 +117,10 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
 .oses-prog{margin-top:10px}
 .prog-bg{background:var(--s3);border-radius:3px;height:4px;overflow:hidden}
 .prog-fg{height:100%;border-radius:3px;transition:width .5s}
+.sec-hdr{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.sec-hdr::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* ÜRÜN SATIRI */
+/* ── ÜRÜN SATIRI ── */
 .urow{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r8);margin-bottom:6px}
 .urow-ico{width:30px;height:30px;border-radius:var(--r6);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;font-weight:600;font-family:var(--mono)}
 .urow.tam .urow-ico{background:var(--green-soft);color:#4ade80}
@@ -122,10 +138,8 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
 .urow-cnt-n{font-size:18px;font-weight:700;font-family:var(--mono)}
 .urow-cnt-l{font-size:9px;color:var(--dim);margin-top:1px;text-transform:uppercase;letter-spacing:.5px}
 
-/* SCAN */
+/* ── SCAN ── */
 .scan-wrap{border-radius:var(--r8);overflow:hidden;background:#000;margin-bottom:8px}
-
-/* RESULT */
 .res{border-radius:var(--r8);padding:14px;margin-bottom:10px;border:1px solid;animation:slin .2s ease}
 @keyframes slin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 .res.ok{background:var(--green-soft);border-color:rgba(74,222,128,.25)}
@@ -141,16 +155,21 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
 .rf-v{font-size:12px;font-weight:600;font-family:var(--mono);margin-top:2px;word-break:break-all;color:var(--text)}
 .rf.full{grid-column:1/-1}
 
-/* ABAR */
+/* ── ABAR ── */
 .abar{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:var(--r10);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.abar-end{font-size:11px;color:#f87171;font-weight:600;cursor:pointer;padding:5px 10px;border-radius:var(--r6);background:var(--red-soft);border:1px solid rgba(248,113,113,.25);white-space:nowrap;font-family:var(--main)}
+.abar-end{font-size:11px;color:#f87171;font-weight:600;cursor:pointer;padding:5px 10px;border-radius:var(--r6);background:var(--red-soft);border:1px solid rgba(248,113,113,.25);white-space:nowrap}
 
-/* RAPOR */
+/* ── RAPOR ── */
 .rblock{margin-bottom:16px}
 .rttl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .ritem{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r8);margin-bottom:6px}
 
-/* TOAST */
+/* ── YÖNETİM ── */
+.ulist-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.ulist-row:last-child{border-bottom:none}
+.ulist-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;margin-right:10px}
+
+/* ── TOAST ── */
 .toasts{position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:999;pointer-events:none;width:calc(100% - 24px);max-width:400px;display:flex;flex-direction:column;gap:6px}
 .toast{padding:10px 14px;border-radius:var(--r8);font-size:12px;font-weight:600;text-align:center;animation:tin .2s ease;box-shadow:0 4px 16px rgba(0,0,0,.4);border:1px solid transparent}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
@@ -159,13 +178,11 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
 .toast.info{background:#1e40af;color:#dbeafe;border-color:#1e3a8a}
 .toast.warn{background:#92400e;color:#fef3c7;border-color:#78350f}
 
-/* EMPTY */
+/* ── UTILS ── */
 .empty{text-align:center;padding:40px 16px;color:var(--dim)}
 .empty-ico{font-size:36px;margin-bottom:10px;opacity:.3}
-
-/* UTILS */
-.mt8{margin-top:8px} .mt12{margin-top:12px} .mt16{margin-top:16px}
-.mono{font-family:var(--mono)} .dim{color:var(--dim)} .sm{font-size:12px} .bold{font-weight:600}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.mono{font-family:var(--mono)}.dim{color:var(--dim)}.sm{font-size:12px}.bold{font-weight:600}
 .div{height:1px;background:var(--border);margin:12px 0}
 .st-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
 .st-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r10);padding:16px;text-align:center;box-shadow:var(--shadow)}
@@ -175,36 +192,72 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
 </head>
 <body>
 
+<!-- ══════════════════════════════════════════
+     GİRİŞ EKRANI
+══════════════════════════════════════════ -->
+<div id="loginScreen" class="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-mark">DY</div>
+      <div>
+        <div class="login-title">Depo Yönetim Sistemi</div>
+        <div class="login-sub">Bursa Lojistik · v2</div>
+      </div>
+    </div>
+    <div class="ig">
+      <label class="lbl">Kullanıcı Adı</label>
+      <input class="inp" id="lAd" placeholder="Kullanıcı adı" autocomplete="off" autocapitalize="off">
+    </div>
+    <div class="ig">
+      <label class="lbl">Şifre</label>
+      <input class="inp" id="lSifre" type="password" placeholder="••••••">
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="btn btn-p mt8" onclick="doLogin()">Giriş Yap</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ANA UYGULAMA
+══════════════════════════════════════════ -->
+<div id="appWrap" style="display:none">
+
 <div class="hdr">
   <div class="logo">
     <div class="logo-mark">DY</div>
     <div>
       <div class="logo-text">Depo Yönetim Sistemi</div>
-      <div class="logo-sub">Bursa Lojistik · v2</div>
+      <div class="logo-sub" id="hdrDepo">Bursa Lojistik · v2</div>
     </div>
   </div>
-  <div class="conn"><div class="dot" id="dot"></div><span id="dotTxt">Bağlı Değil</span></div>
+  <div class="hdr-right">
+    <div class="conn"><div class="dot" id="dot"></div><span id="dotTxt">Bağlı Değil</span></div>
+    <div class="user-chip" onclick="doLogout()">
+      <div class="user-av" id="userAv">?</div>
+      <span class="user-name" id="userName">—</span>
+    </div>
+  </div>
 </div>
 
-<div class="tabs">
+<div class="tabs" id="tabBar">
   <div class="tab on" onclick="goTab('oturumlar')" id="t-oturumlar"><i>☰</i>OTURUMLAR</div>
   <div class="tab" onclick="goTab('scan')" id="t-scan"><i>⬡</i>OKUT</div>
   <div class="tab" onclick="goTab('rapor')" id="t-rapor"><i>◫</i>RAPOR</div>
-  <div class="tab" onclick="goTab('ayarlar')" id="t-ayarlar"><i>⚙</i>AYARLAR</div>
+  <div class="tab" onclick="goTab('yonetim')" id="t-yonetim" style="display:none"><i>⚙</i>YÖNETİM</div>
+  <div class="tab" onclick="goTab('ayarlar')" id="t-ayarlar"><i>⊙</i>AYARLAR</div>
 </div>
 
 <div class="toasts" id="toasts"></div>
 
-<!-- ══════════════════════════════════════════════
+<!-- ══════════════════════════════════════════
      OTURUMLAR
-══════════════════════════════════════════════ -->
+══════════════════════════════════════════ -->
 <div class="pg on" id="pg-oturumlar">
-  <button class="btn btn-p" onclick="openNewForm()" style="margin-bottom:10px">+ Yeni Oturum Oluştur</button>
+  <button class="btn btn-p" onclick="openNewForm()" style="margin-bottom:12px">+ Yeni Oturum Oluştur</button>
 
   <!-- YENİ OTURUM FORMU -->
   <div class="card" id="newForm" style="display:none">
     <div class="ct">Yeni Oturum</div>
-
     <div class="g2">
       <div class="ig">
         <label class="lbl">Oturum Tipi *</label>
@@ -228,7 +281,7 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
         <input class="inp" id="nf-firma" placeholder="Firma adı">
       </div>
       <div class="ig">
-        <label class="lbl">Varış / Çıkış Tarihi</label>
+        <label class="lbl">Tarih</label>
         <input class="inp" type="date" id="nf-tarih">
       </div>
     </div>
@@ -238,8 +291,11 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
     </div>
 
     <div class="div"></div>
-    <div class="ct">Ürün Listesini Yapıştır</div>
+    <div class="ct">Ürün Listesi</div>
 
+    <div class="fr" style="margin-bottom:10px">
+      <button class="btn btn-g btn-sm" onclick="downloadTemplate()">⬇ Taslak İndir (.xlsx)</button>
+    </div>
     <div class="ig">
       <label class="lbl">Excel Dosyası Yükle (.xlsx / .xls)</label>
       <label style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px dashed var(--border2);border-radius:var(--r8);padding:10px 12px;cursor:pointer">
@@ -250,8 +306,7 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
     </div>
     <div class="ig">
       <label class="lbl">veya Excel'den Kopyalayıp Yapıştırın</label>
-      <textarea class="inp" id="nf-liste" rows="6"
-        placeholder="Excel'den kopyalayıp buraya yapıştırın.&#10;Beklenen sütun sırası:&#10;SAS KALEM NO | SÖZLEŞME NO | MÜŞTERİ ADI | MALZEME KODU | ÜRÜN ADI | ÜRÜN DETAYI | MİKTAR&#10;&#10;Sadece MALZEME KODU, ÜRÜN ADI ve MİKTAR zorunlu."></textarea>
+      <textarea class="inp" id="nf-liste" rows="5" placeholder="Excel'den kopyalayıp yapıştırın..."></textarea>
     </div>
 
     <div class="card" id="onizleme" style="display:none;background:var(--s2);border-color:var(--border2)">
@@ -269,15 +324,15 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
     </div>
   </div>
 
-  <!-- OTURUM LİSTESİ -->
+  <!-- AKTİF & KAPALI OTURUMLAR -->
   <div id="sesList"></div>
+  <div id="sesListHatali"></div>
 </div>
 
-<!-- ══════════════════════════════════════════════
+<!-- ══════════════════════════════════════════
      OKUT
-══════════════════════════════════════════════ -->
+══════════════════════════════════════════ -->
 <div class="pg" id="pg-scan">
-
   <div id="scanNoSes">
     <div class="card">
       <div class="ct">Aktif Oturum Yok</div>
@@ -285,10 +340,7 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
       <button class="btn btn-p" onclick="goTab('oturumlar')">Oturumlara Git →</button>
     </div>
   </div>
-
   <div id="scanHasSes" style="display:none">
-
-    <!-- Aktif oturum barı -->
     <div class="abar" id="scanAbar">
       <div>
         <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">Aktif Oturum</div>
@@ -296,26 +348,20 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
       </div>
       <div class="abar-end" onclick="endSession()">Bitir ✕</div>
     </div>
-
-    <!-- İlerleme -->
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
         <span class="sm dim">Paket İlerlemesi</span>
         <span class="sm bold mono" id="progTxt">0 / 0</span>
       </div>
-      <div class="prog-bg"><div class="prog-fg" id="progFg" style="width:0%;background:linear-gradient(90deg,var(--cyan),var(--green))"></div></div>
+      <div class="prog-bg"><div class="prog-fg" id="progFg" style="width:0%"></div></div>
       <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap" id="progBadges"></div>
     </div>
-
-    <!-- Kamera -->
     <div class="card" id="camCard" style="display:none">
       <div class="ct">Kamera ile Okut</div>
       <div class="scan-wrap"><div id="qr-reader" style="width:100%"></div></div>
       <div style="text-align:center;font-size:10px;color:var(--dim);font-family:var(--mono);padding:6px">QR / DataMatrix çerçeve içine alın</div>
       <button class="btn btn-g mt8" onclick="stopCam()">📷 Kamerayı Durdur</button>
     </div>
-
-    <!-- Manuel -->
     <div class="card" id="manCard">
       <div class="ct">Barkod Okut</div>
       <div class="fr">
@@ -324,33 +370,68 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
       </div>
       <button class="btn btn-g mt8" style="font-size:12px" onclick="startCam()">📷 Kamera Aç</button>
     </div>
-
-    <!-- Sonuç -->
     <div id="resArea"></div>
-
-    <!-- Ürün Durumu -->
     <div class="card">
       <div class="ct">Ürün Durumu</div>
       <div id="urunDurum"></div>
     </div>
-
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════
+<!-- ══════════════════════════════════════════
      RAPOR
-══════════════════════════════════════════════ -->
+══════════════════════════════════════════ -->
 <div class="pg" id="pg-rapor">
   <div class="card">
     <div class="ct">Oturum Seç</div>
     <select class="inp" id="raporSel" onchange="loadRapor()"><option value="">Seçin...</option></select>
   </div>
-  <div id="raporBody"><div class="empty"><div class="empty-ico">◈</div><div>Rapor için oturum seçin</div></div></div>
+  <div id="raporBody"><div class="empty"><div class="empty-ico">◫</div><div>Rapor için oturum seçin</div></div></div>
 </div>
 
-<!-- ══════════════════════════════════════════════
+<!-- ══════════════════════════════════════════
+     YÖNETİM (sadece admin)
+══════════════════════════════════════════ -->
+<div class="pg" id="pg-yonetim">
+  <!-- Kullanıcı Yönetimi -->
+  <div class="card">
+    <div class="ct">Kullanıcı Yönetimi</div>
+    <div class="fr ig">
+      <input class="inp" id="yAd" placeholder="Kullanıcı adı">
+      <input class="inp" id="ySifre" placeholder="Şifre" type="password">
+    </div>
+    <div class="g2 ig">
+      <select class="inp" id="yDepo"><option value="">Depo seçin...</option></select>
+      <select class="inp" id="yRol">
+        <option value="kullanici">Kullanıcı</option>
+        <option value="admin">Yönetici</option>
+      </select>
+    </div>
+    <button class="btn btn-p btn-sm" onclick="addUser()">+ Kullanıcı Ekle</button>
+    <div class="div"></div>
+    <div id="kullaniciListEl"></div>
+  </div>
+
+  <!-- Depo Yönetimi -->
+  <div class="card">
+    <div class="ct">Depo Yönetimi</div>
+    <div class="fr ig">
+      <input class="inp" id="yNewDepo" placeholder="Yeni depo adı...">
+      <button class="btn btn-p btn-sm" onclick="addDepo()">+</button>
+    </div>
+    <div id="depoListEl"></div>
+  </div>
+
+  <!-- Oturum Silme -->
+  <div class="card">
+    <div class="ct">Tüm Oturumlar (Yönetici)</div>
+    <div id="adminSesList"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
      AYARLAR
-══════════════════════════════════════════════ -->
+══════════════════════════════════════════ -->
 <div class="pg" id="pg-ayarlar">
   <div class="card">
     <div class="ct">Google Sheets Bağlantısı</div>
@@ -368,60 +449,240 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
     </div>
   </div>
   <div class="card">
-    <div class="ct">Depo Listesi</div>
-    <div class="fr ig"><input class="inp" id="newDepo" placeholder="Depo adı..."><button class="btn btn-p btn-sm" onclick="addDepo()">+</button></div>
-    <div id="depoListEl"></div>
+    <div class="ct">Sütun Eşleştirme</div>
+    <p class="sm dim" style="margin-bottom:10px">Excel sütun indeksleri (0'dan başlar). Taslak dosyayı kullanıyorsanız değiştirmeye gerek yok.</p>
+    <div class="g2">
+      <div class="ig"><label class="lbl">Malzeme Kodu</label><input class="inp" type="number" id="colKod" value="4" min="0"></div>
+      <div class="ig"><label class="lbl">Ürün Adı</label><input class="inp" type="number" id="colAd" value="5" min="0"></div>
+      <div class="ig"><label class="lbl">Miktar</label><input class="inp" type="number" id="colMiktar" value="7" min="0"></div>
+      <div class="ig"><label class="lbl">Ürün Detayı</label><input class="inp" type="number" id="colDetay" value="6" min="0"></div>
+      <div class="ig"><label class="lbl">SAS Kalem No</label><input class="inp" type="number" id="colSas" value="0" min="0"></div>
+      <div class="ig"><label class="lbl">Müşteri Adı</label><input class="inp" type="number" id="colMusteri" value="3" min="0"></div>
+    </div>
+    <button class="btn btn-g btn-sm" onclick="saveCols()">Kaydet</button>
   </div>
   <div class="card">
-    <div class="ct">Sütun Eşleştirme</div>
-    <p class="sm dim" style="margin-bottom:10px">Yapıştırdığınız tablodaki sütun sıralarını belirtin (0'dan başlar)</p>
-    <div class="g2">
-      <div class="ig"><label class="lbl">Malzeme Kodu Sütunu</label><input class="inp" type="number" id="colKod" value="4" min="0"></div>
-      <div class="ig"><label class="lbl">Ürün Adı Sütunu</label><input class="inp" type="number" id="colAd" value="5" min="0"></div>
-      <div class="ig"><label class="lbl">Miktar Sütunu</label><input class="inp" type="number" id="colMiktar" value="7" min="0"></div>
-      <div class="ig"><label class="lbl">Ürün Detay Sütunu</label><input class="inp" type="number" id="colDetay" value="6" min="0"></div>
-      <div class="ig"><label class="lbl">SAS Kalem No Sütunu</label><input class="inp" type="number" id="colSas" value="0" min="0"></div>
-      <div class="ig"><label class="lbl">Müşteri Adı Sütunu</label><input class="inp" type="number" id="colMusteri" value="3" min="0"></div>
-    </div>
-    <button class="btn btn-g" onclick="saveCols()" style="font-size:12px">Kaydet</button>
+    <div class="ct">Şifre Değiştir</div>
+    <div class="ig"><label class="lbl">Mevcut Şifre</label><input class="inp" type="password" id="eskiSifre"></div>
+    <div class="ig"><label class="lbl">Yeni Şifre</label><input class="inp" type="password" id="yeniSifre"></div>
+    <button class="btn btn-g btn-sm" onclick="sifreDegistir()">Güncelle</button>
   </div>
 </div>
+
+</div><!-- /appWrap -->
 
 <script>
 // ═══════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════
 const DB = {
-  url:      localStorage.getItem('d3_url') || 'https://script.google.com/macros/s/AKfycbyMSOrVlPdO3H_RYsFAJxp6B5qvTjBhsumvNYDdkHVzPMtW0160cc6zGaO75arNixCp/exec',
-  depolar:  JSON.parse(localStorage.getItem('d3_depolar') || '["İstanbul Ana Depo","Ankara Depo","İzmir Depo","Bursa Depo"]'),
-  oturumlar:JSON.parse(localStorage.getItem('d3_ses') || '[]'),
-  aktifId:  localStorage.getItem('d3_aktif') || null,
-  cols:     JSON.parse(localStorage.getItem('d3_cols') || '{"kod":4,"ad":5,"miktar":7,"detay":6,"sas":0,"musteri":3}'),
+  url:       localStorage.getItem('d3_url') || 'https://script.google.com/macros/s/AKfycbxNRQpDIS3Wc98c5W1LyLPNSAVZs-1Ey40YALQLuXl8K1YN7-cvyXGKDT7bGq8efHpj/exec',
+  depolar:   JSON.parse(localStorage.getItem('d3_depolar') || '["Bursa Depo","İstanbul Ana Depo","Ankara Depo","İzmir Depo"]'),
+  oturumlar: JSON.parse(localStorage.getItem('d3_ses') || '[]'),
+  aktifId:   localStorage.getItem('d3_aktif') || null,
+  cols:      JSON.parse(localStorage.getItem('d3_cols') || '{"kod":4,"ad":5,"miktar":7,"detay":6,"sas":0,"musteri":3}'),
+  kullanicilar: JSON.parse(localStorage.getItem('d3_users') || '[{"id":"admin","ad":"admin","sifre":"admin1234","depo":"*","rol":"admin"}]'),
+  aktifKullanici: JSON.parse(localStorage.getItem('d3_aktif_k') || 'null'),
   cam: false, cool: false
 };
 
-// Önizleme tamponu
 let parsedUrunler = [];
 
 function persist() {
   localStorage.setItem('d3_ses', JSON.stringify(DB.oturumlar));
   localStorage.setItem('d3_aktif', DB.aktifId || '');
 }
-
+function persistUsers() {
+  localStorage.setItem('d3_users', JSON.stringify(DB.kullanicilar));
+}
 function aktif() { return DB.oturumlar.find(o => o.id === DB.aktifId) || null; }
+function ben() { return DB.aktifKullanici; }
+function isAdmin() { return ben() && ben().rol === 'admin'; }
+
+// ═══════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════
+function doLogin() {
+  const ad    = document.getElementById('lAd').value.trim();
+  const sifre = document.getElementById('lSifre').value;
+  const k = DB.kullanicilar.find(u => u.ad === ad && u.sifre === sifre);
+  if (!k) {
+    document.getElementById('loginErr').textContent = 'Kullanıcı adı veya şifre hatalı.';
+    return;
+  }
+  DB.aktifKullanici = { id: k.id, ad: k.ad, depo: k.depo, rol: k.rol };
+  localStorage.setItem('d3_aktif_k', JSON.stringify(DB.aktifKullanici));
+  startApp();
+}
+
+function doLogout() {
+  if (!confirm('Çıkış yapmak istiyor musunuz?')) return;
+  stopCam();
+  DB.aktifKullanici = null;
+  DB.aktifId = null;
+  localStorage.removeItem('d3_aktif_k');
+  localStorage.removeItem('d3_aktif');
+  document.getElementById('appWrap').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('lAd').value = '';
+  document.getElementById('lSifre').value = '';
+  document.getElementById('loginErr').textContent = '';
+}
+
+document.getElementById('lSifre').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+function startApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appWrap').style.display = 'block';
+
+  const k = ben();
+  document.getElementById('userAv').textContent = k.ad[0].toUpperCase();
+  document.getElementById('userName').textContent = k.ad;
+  document.getElementById('hdrDepo').textContent = k.depo === '*' ? 'Tüm Depolar · Yönetici' : k.depo;
+
+  // Yönetim sekmesi sadece admin'e görünür
+  document.getElementById('t-yonetim').style.display = isAdmin() ? 'flex' : 'none';
+
+  fillDepoSelect('nf-depo');
+  renderOturumlar();
+  if (DB.url) { setDot('ok'); sqFlush(); }
+}
+
+function sifreDegistir() {
+  const eski  = document.getElementById('eskiSifre').value;
+  const yeni  = document.getElementById('yeniSifre').value;
+  const k = DB.kullanicilar.find(u => u.id === ben().id);
+  if (!k || k.sifre !== eski) { toast('Mevcut şifre hatalı', 'err'); return; }
+  if (yeni.length < 4) { toast('Yeni şifre en az 4 karakter olmalı', 'err'); return; }
+  k.sifre = yeni;
+  persistUsers();
+  document.getElementById('eskiSifre').value = '';
+  document.getElementById('yeniSifre').value = '';
+  toast('Şifre güncellendi', 'ok');
+}
+
+// ═══════════════════════════════════════════════════
+// YÖNETİM — Kullanıcı
+// ═══════════════════════════════════════════════════
+function addUser() {
+  const ad    = document.getElementById('yAd').value.trim();
+  const sifre = document.getElementById('ySifre').value.trim();
+  const depo  = document.getElementById('yDepo').value;
+  const rol   = document.getElementById('yRol').value;
+  if (!ad || !sifre || !depo) { toast('Tüm alanları doldurun', 'err'); return; }
+  if (DB.kullanicilar.find(u => u.ad === ad)) { toast('Bu kullanıcı adı zaten var', 'err'); return; }
+  DB.kullanicilar.push({ id: Date.now().toString(), ad, sifre, depo, rol });
+  persistUsers();
+  document.getElementById('yAd').value = '';
+  document.getElementById('ySifre').value = '';
+  renderYonetim();
+  toast(`${ad} eklendi`, 'ok');
+}
+
+function removeUser(id) {
+  if (id === ben().id) { toast('Kendinizi silemezsiniz', 'err'); return; }
+  if (!confirm('Bu kullanıcıyı silmek istiyor musunuz?')) return;
+  DB.kullanicilar = DB.kullanicilar.filter(u => u.id !== id);
+  persistUsers();
+  renderYonetim();
+  toast('Kullanıcı silindi', 'info');
+}
+
+// ═══════════════════════════════════════════════════
+// YÖNETİM — Render
+// ═══════════════════════════════════════════════════
+function renderYonetim() {
+  // Kullanıcı listesi
+  const colors = ['#2563eb','#16a34a','#d97706','#7c3aed','#dc2626'];
+  document.getElementById('kullaniciListEl').innerHTML = DB.kullanicilar.map((k, i) => `
+    <div class="ulist-row">
+      <div style="display:flex;align-items:center">
+        <div class="ulist-av" style="background:${colors[i%colors.length]}">${k.ad[0].toUpperCase()}</div>
+        <div>
+          <div style="font-size:13px;font-weight:600">${k.ad}</div>
+          <div style="font-size:10px;color:var(--dim)">${k.depo === '*' ? 'Tüm depolar' : k.depo} · ${k.rol === 'admin' ? 'Yönetici' : 'Kullanıcı'}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="b ${k.rol==='admin'?'bp':'bb'}">${k.rol==='admin'?'ADMİN':'KULLANICI'}</span>
+        ${k.id !== ben().id ? `<button class="btn btn-r btn-sm" onclick="removeUser('${k.id}')">Sil</button>` : '<span class="b bg">Siz</span>'}
+      </div>
+    </div>`).join('');
+
+  // Depo listesi
+  renderDepoList();
+
+  // Depo select for new user
+  fillDepoSelectAdmin('yDepo');
+
+  // Admin oturum listesi
+  renderAdminSesList();
+}
+
+function renderAdminSesList() {
+  const el = document.getElementById('adminSesList');
+  if (!el) return;
+  if (DB.oturumlar.length === 0) {
+    el.innerHTML = '<div class="empty" style="padding:16px"><div>Oturum yok</div></div>';
+    return;
+  }
+  el.innerHTML = DB.oturumlar.map(o => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:12px;font-weight:600;font-family:var(--mono)">${o.id}</div>
+        <div style="font-size:10px;color:var(--dim)">${o.depo} · ${o.sorumlu} · ${o.tarih||'—'}</div>
+      </div>
+      <button class="btn btn-r btn-sm" onclick="deleteSes('${o.id}')">Sil</button>
+    </div>`).join('');
+}
 
 // ═══════════════════════════════════════════════════
 // OTURUM NO ÜRETİCİ
 // ═══════════════════════════════════════════════════
 function genSesId(tip) {
   const prefix = tip === 'kabul' ? 'MK' : 'MC';
-  const today = new Date();
-  const d = today.toISOString().slice(0,10).replace(/-/g,'');
-  const ayniGun = DB.oturumlar.filter(o =>
-    o.id.startsWith(prefix + '-' + d)
-  ).length;
-  const sira = String(ayniGun + 1).padStart(3, '0');
-  return `${prefix}-${d}-${sira}`;
+  const d = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const n = DB.oturumlar.filter(o => o.id.startsWith(prefix+'-'+d)).length;
+  return `${prefix}-${d}-${String(n+1).padStart(3,'0')}`;
+}
+
+// ═══════════════════════════════════════════════════
+// TASLAK İNDİR
+// ═══════════════════════════════════════════════════
+function downloadTemplate() {
+  const headers = ['PROSAP SAS KALEM NO','SÖZLEŞME NO','İRSALİYE TESLİMAT NO','MÜŞTERİ ADI','MALZEME KODU','ÜRÜN ADI','ÜRÜN DETAYI','MİKTAR'];
+  const example = ['S1401407094-10','1401407094','','ÖRNEK MÜŞTERİ','3200424239','ÖRNEK ÜRÜN ADI','Renk/Model Detayı','1'];
+  const ws = XLSX.utils.aoa_to_sheet([headers, example]);
+  // Sütun genişlikleri
+  ws['!cols'] = [14,14,14,20,14,28,20,8].map(w => ({wch:w}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ürün Listesi');
+  XLSX.writeFile(wb, 'depo_urun_taslak.xlsx');
+  toast('Taslak indirildi', 'ok');
+}
+
+// ═══════════════════════════════════════════════════
+// XLSX YÜKLEME
+// ═══════════════════════════════════════════════════
+function loadXlsx(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('xlsxLabel').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type:'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+      document.getElementById('nf-liste').value = rows.map(r => r.join('\t')).join('\n');
+      toast(`${file.name} yüklendi (${rows.length} satır)`, 'ok');
+    } catch(err) {
+      toast('xlsx okunamadı: ' + err.message, 'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 // ═══════════════════════════════════════════════════
@@ -430,63 +691,46 @@ function genSesId(tip) {
 function parseOnizleme() {
   const raw = document.getElementById('nf-liste').value.trim();
   if (!raw) { toast('Liste boş!', 'err'); return; }
-
   const c = DB.cols;
   const satirlar = raw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
-
   parsedUrunler = [];
-  const hatalar = [];
 
-  satirlar.forEach((satir, idx) => {
-    // Tab veya birden fazla boşlukla ayrılmış sütunlar
+  satirlar.forEach(satir => {
     const cols = satir.split('\t');
-    if (cols.length < 3) return; // çok az sütun
-
+    if (cols.length < 3) return;
     const kod = (cols[c.kod] || '').trim();
     const ad  = (cols[c.ad]  || '').trim();
     const miktarStr = (cols[c.miktar] || '1').trim();
-    const detay = (cols[c.detay] || '').trim();
-    const sas = (cols[c.sas]   || '').trim();
+    const detay   = (cols[c.detay]   || '').trim();
+    const sas     = (cols[c.sas]     || '').trim();
     const musteri = (cols[c.musteri] || '').trim();
-
-    if (!kod || kod.length < 4) return; // başlık satırı veya boş
-
+    if (!kod || kod.length < 4 || isNaN(Number(kod[0]))) return; // başlık satırı filtrele
     const miktar = parseInt(miktarStr) || 1;
-
-    // Mükerrer kontrol — aynı kod zaten eklendi mi?
     const existing = parsedUrunler.find(u => u.kod === kod);
-    if (existing) {
-      existing.miktar += miktar; // miktarı topla
-    } else {
-      parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: 1 });
-    }
+    if (existing) { existing.miktar += miktar; }
+    else parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: 1 });
   });
 
-  if (parsedUrunler.length === 0) {
-    toast('Hiç ürün bulunamadı. Sütun sıralarını kontrol edin.', 'err');
-    return;
-  }
+  if (parsedUrunler.length === 0) { toast('Hiç ürün bulunamadı. Sütun sıralarını kontrol edin.', 'err'); return; }
 
-  // Önizleme göster
   const div = document.getElementById('onizleme');
   const ic  = document.getElementById('onizlemeIcerik');
   div.style.display = 'block';
 
-  let html = `<div style="font-size:11px;color:var(--green);margin-bottom:8px">✓ ${parsedUrunler.length} ürün bulundu</div>`;
+  let html = `<div style="font-size:11px;color:#4ade80;margin-bottom:8px">✓ ${parsedUrunler.length} ürün bulundu</div>`;
   html += '<div style="max-height:200px;overflow-y:auto">';
   parsedUrunler.forEach(u => {
-    html += `
-      <div style="display:flex;justify-content:space-between;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px">
-        <div>
-          <div class="bold">${u.kod}</div>
-          <div class="dim" style="font-size:10px">${u.ad}${u.detay ? ' · ' + u.detay : ''}</div>
-          ${u.musteri ? `<div style="font-size:9px;color:var(--purple)">${u.musteri}</div>` : ''}
-        </div>
-        <div style="text-align:right;flex-shrink:0;margin-left:10px">
-          <div class="bold mono">${u.miktar} adet</div>
-          ${u.sas ? `<div class="dim" style="font-size:9px">${u.sas}</div>` : ''}
-        </div>
-      </div>`;
+    html += `<div style="display:flex;justify-content:space-between;padding:7px 8px;border-bottom:1px solid var(--border);font-size:11px">
+      <div>
+        <div class="bold mono">${u.kod}</div>
+        <div class="dim" style="font-size:10px">${u.ad}${u.detay?' · '+u.detay:''}</div>
+        ${u.musteri?`<div style="font-size:9px;color:#a78bfa">${u.musteri}</div>`:''}
+      </div>
+      <div style="text-align:right;flex-shrink:0;margin-left:10px">
+        <div class="bold">${u.miktar} adet</div>
+        ${u.sas?`<div class="dim" style="font-size:9px">${u.sas}</div>`:''}
+      </div>
+    </div>`;
   });
   html += '</div>';
   ic.innerHTML = html;
@@ -500,13 +744,21 @@ function parseOnizleme() {
 // OTURUM OLUŞTUR
 // ═══════════════════════════════════════════════════
 function openNewForm() {
-  document.getElementById('newForm').style.display = 'block';
+  const el = document.getElementById('newForm');
+  el.style.display = 'block';
   document.getElementById('oturumOlusturDiv').style.display = 'none';
   document.getElementById('onizleme').style.display = 'none';
   document.getElementById('btnOnizle').textContent = 'Listeyi Analiz Et →';
   document.getElementById('nf-tarih').value = new Date().toISOString().slice(0,10);
+  // Kullanıcının deposunu otomatik seç
+  const k = ben();
+  if (k && k.depo !== '*') {
+    const sel = document.getElementById('nf-depo');
+    if ([...sel.options].some(o => o.value === k.depo)) sel.value = k.depo;
+  }
+  // Sorumluyu otomatik doldur
+  document.getElementById('nf-sorumlu').value = k ? k.ad : '';
   parsedUrunler = [];
-  fillDepoSelect('nf-depo');
 }
 
 function closeNewForm() {
@@ -536,25 +788,22 @@ function createSession() {
 
   if (!depo)    { toast('Depo seçin!', 'err'); return; }
   if (!sorumlu) { toast('Sorumlu personel girin!', 'err'); return; }
-  if (parsedUrunler.length === 0) { toast('Ürün listesi analiz edin!', 'err'); return; }
+  if (parsedUrunler.length === 0) { toast('Ürün listesini analiz edin!', 'err'); return; }
 
   const id = genSesId(tip);
-
   const ses = {
     id, tip, depo, plaka, firma, tarih, sorumlu,
     olusturmaTarih: new Date().toISOString(),
-    urunler: parsedUrunler.map(u => ({ ...u })),
+    olusturanId: ben().id,
+    urunler: parsedUrunler.map(u => ({...u})),
     hareketler: [],
-    durum: 'beklemede' // beklemede | devam | tamamlandi | sorunlu | kapali
+    durum: 'beklemede'
   };
 
   DB.oturumlar.unshift(ses);
   DB.aktifId = id;
   persist();
-
-  // Sheets'e gönder
   sendSheets({ action:'newSession', ...ses, urunler: JSON.stringify(ses.urunler) });
-
   closeNewForm();
   toast(`${id} oluşturuldu`, 'ok');
   renderOturumlar();
@@ -564,95 +813,121 @@ function createSession() {
 // ═══════════════════════════════════════════════════
 // OTURUMLAR RENDER
 // ═══════════════════════════════════════════════════
+function oturumFiltre() {
+  const k = ben();
+  if (!k) return [];
+  if (k.depo === '*') return DB.oturumlar;
+  return DB.oturumlar.filter(o => o.depo === k.depo);
+}
+
 function renderOturumlar() {
-  const list = document.getElementById('sesList');
-  if (DB.oturumlar.length === 0) {
-    list.innerHTML = '<div class="empty"><div class="empty-ico">▦</div><div>Henüz oturum yok</div></div>';
-    return;
+  const liste   = oturumFiltre();
+  const normal  = liste.filter(o => !o.hatali);
+  const hataliL = liste.filter(o => o.hatali);
+
+  const sesListEl = document.getElementById('sesList');
+  const hataliEl  = document.getElementById('sesListHatali');
+
+  if (normal.length === 0) {
+    sesListEl.innerHTML = '<div class="empty"><div class="empty-ico">☰</div><div>Henüz oturum yok</div></div>';
+  } else {
+    sesListEl.innerHTML = normal.map(o => oturumKarti(o)).join('');
   }
 
-  list.innerHTML = DB.oturumlar.map(o => {
-    const stats    = getSesStats(o);
-    const aktifMi  = o.id === DB.aktifId;
-    const tipLabel = o.tip === 'kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
-    const durumBadge = getDurumBadge(o);
-    const pct = stats.toplamPkt > 0 ? Math.min(100, Math.round(stats.okutulan / stats.toplamPkt * 100)) : 0;
+  if (hataliL.length > 0) {
+    hataliEl.innerHTML = `<div class="sec-hdr" style="color:#f97316">⚠ Hatalı Oturumlar (${hataliL.length})</div>` +
+      hataliL.map(o => oturumKarti(o)).join('');
+  } else {
+    hataliEl.innerHTML = '';
+  }
+}
 
-    return `
-      <div class="oses ${o.tip} ${aktifMi ? 'aktif' : ''}" onclick="sesAction('${o.id}')">
-        <div class="oses-hdr">
-          <div class="oses-no">${o.id}</div>
-          <div class="oses-badges">
-            ${aktifMi ? '<span class="b bc">AKTİF</span>' : ''}
-            <span class="b ${o.tip === 'kabul' ? 'bc' : 'br'}">${tipLabel}</span>
-            ${durumBadge}
-          </div>
-        </div>
-        <div class="oses-meta">
-          ${o.depo} · ${o.firma || '—'} · ${o.plaka || '—'} · ${o.sorumlu}
-          ${o.tarih ? ' · ' + o.tarih : ''}
-        </div>
-        <div class="oses-stats">
-          <span class="b bg">✓ Tam: ${stats.tam}</span>
-          <span class="b bw">⚡ Eksik: ${stats.eksik}</span>
-          ${stats.fazla > 0 ? `<span class="b bp">+ Fazla: ${stats.fazla}</span>` : ''}
-          <span class="b bb">${stats.okutulan}/${stats.toplamPkt} paket</span>
-          <span class="b" style="background:rgba(255,255,255,.05);color:var(--dim)">${o.urunler.length} ürün</span>
-        </div>
-        <div class="oses-prog">
-          <div class="prog-bg">
-            <div class="prog-fg" style="width:${pct}%;background:linear-gradient(90deg,${o.tip==='kabul'?'var(--cyan)':'var(--red)'},${pct>=100?'var(--green)':'var(--warn)'})"></div>
-          </div>
-        </div>
-        <div style="display:flex;gap:6px;margin-top:8px">
-          ${!o.kapali ? `<button class="btn btn-p btn-sm" onclick="event.stopPropagation();activateAndScan('${o.id}')">Okutmaya Başla →</button>` : ''}
-          <button class="btn btn-g btn-sm" onclick="event.stopPropagation();goRapor('${o.id}')">Rapor</button>
-          <button class="btn btn-r btn-sm" onclick="event.stopPropagation();deleteSes('${o.id}')">Sil</button>
-        </div>
-      </div>`;
-  }).join('');
+function oturumKarti(o) {
+  const stats   = getSesStats(o);
+  const aktifMi = o.id === DB.aktifId;
+  const tipLabel = o.tip === 'kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
+  const pct = stats.toplamPkt > 0 ? Math.min(100,Math.round(stats.okutulan/stats.toplamPkt*100)) : 0;
+  const progColor = o.hatali ? '#f97316' : (pct>=100 ? '#22c55e' : (o.tip==='kabul'?'var(--blue)':'var(--red)'));
+
+  return `<div class="oses ${o.tip} ${o.hatali?'hatali':''} ${aktifMi?'aktif':''}">
+    <div class="oses-hdr">
+      <div class="oses-no">${o.id}</div>
+      <div class="oses-badges">
+        ${aktifMi?'<span class="b bc">AKTİF</span>':''}
+        <span class="b ${o.tip==='kabul'?'bc':'br'}">${tipLabel}</span>
+        ${getDurumBadge(o)}
+      </div>
+    </div>
+    <div class="oses-meta">${o.depo} · ${o.firma||'—'} · ${o.plaka||'—'} · ${o.sorumlu}${o.tarih?' · '+o.tarih:''}</div>
+    <div class="oses-stats">
+      <span class="b bg">✓ ${stats.tam}</span>
+      <span class="b bw">⚡ ${stats.eksik}</span>
+      ${stats.fazla>0?`<span class="b bp">+${stats.fazla}</span>`:''}
+      <span class="b bb">${stats.okutulan}/${stats.toplamPkt} pkt</span>
+      <span class="b" style="background:rgba(255,255,255,.05);color:var(--dim)">${o.urunler.length} ürün</span>
+    </div>
+    <div class="oses-prog"><div class="prog-bg"><div class="prog-fg" style="width:${pct}%;background:${progColor}"></div></div></div>
+    <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+      ${!o.kapali&&!o.hatali?`<button class="btn btn-p btn-sm" onclick="activateAndScan('${o.id}')">Okutmaya Başla →</button>`:''}
+      <button class="btn btn-g btn-sm" onclick="goRapor('${o.id}')">Rapor</button>
+      ${!o.hatali&&!o.kapali?`<button class="btn btn-sm" style="background:var(--warn-soft);color:#fbbf24;border:1px solid rgba(251,191,36,.25)" onclick="isareteHatali('${o.id}')">⚠ Hatalı</button>`:''}
+    </div>
+  </div>`;
 }
 
 function getDurumBadge(o) {
-  const s = o.durum;
-  if (o.kapali && s === 'tamamlandi') return '<span class="b bg">✓ KAPALI · TAM</span>';
-  if (o.kapali && s === 'sorunlu')    return '<span class="b br">✕ KAPALI · SORUNLU</span>';
-  if (o.kapali)                       return '<span class="b" style="background:rgba(255,255,255,.05);color:var(--dim)">KAPALI</span>';
-  if (s === 'beklemede')   return '<span class="b bw">⏳ BEKLENİYOR</span>';
-  if (s === 'devam')       return '<span class="b bc">▶ DEVAM EDİYOR</span>';
-  if (s === 'tamamlandi')  return '<span class="b bg">✓ TAMAMLANDI</span>';
-  if (s === 'sorunlu')     return '<span class="b br">⚠ SORUNLU</span>';
+  if (o.hatali) return '<span class="b" style="background:rgba(249,115,22,.12);color:#fb923c;border:1px solid rgba(249,115,22,.25)">⚠ HATALI</span>';
+  if (o.kapali && o.durum==='tamamlandi') return '<span class="b bg">✓ KAPALI·TAM</span>';
+  if (o.kapali && o.durum==='sorunlu')    return '<span class="b br">✕ KAPALI·SORUNLU</span>';
+  if (o.kapali) return '<span class="b" style="background:rgba(255,255,255,.05);color:var(--dim)">KAPALI</span>';
+  if (o.durum==='beklemede')  return '<span class="b bw">⏳ BEKLENİYOR</span>';
+  if (o.durum==='devam')      return '<span class="b bc">▶ DEVAM</span>';
+  if (o.durum==='tamamlandi') return '<span class="b bg">✓ TAMAMLANDI</span>';
+  if (o.durum==='sorunlu')    return '<span class="b br">⚠ SORUNLU</span>';
   return '';
 }
 
 function getSesStats(o) {
-  const toplamPkt = o.urunler.reduce((s, u) => s + (u.toplamPaket || 1), 0);
+  const toplamPkt = o.urunler.reduce((s,u) => s+(u.toplamPaket||1), 0);
   const okutulan  = o.hareketler.length;
-  const tam       = o.urunler.filter(u => isUrunTam(o, u)).length;
-  const eksik     = o.urunler.filter(u => !isUrunTam(o, u)).length;
+  const tam       = o.urunler.filter(u => isUrunTam(o,u)).length;
+  const eksik     = o.urunler.filter(u => !isUrunTam(o,u)).length;
   const fazla     = getFazla(o).length;
   return { toplamPkt, okutulan, tam, eksik, fazla };
 }
 
-function sesAction(id) {
-  // Oturum detayına git (şimdilik raporu aç)
-  goRapor(id);
+function isareteHatali(id) {
+  if (!confirm('Bu oturumu hatalı olarak işaretlemek istiyor musunuz? Oturum kapanacak ve hatalı listesine taşınacak.')) return;
+  const o = DB.oturumlar.find(x => x.id === id);
+  if (!o) return;
+  o.hatali = true;
+  o.kapali = true;
+  o.kapatmaTarih = new Date().toISOString();
+  o.durum = 'sorunlu';
+  if (DB.aktifId === id) { stopCam(); DB.aktifId = null; }
+  persist();
+  sendSheets({ action:'closeSession', oturumId:o.id, durum:'hatali', tamUrun:0, eksikUrun:o.urunler.length, fazlaUrun:0 });
+  renderOturumlar();
+  renderScanPage();
+  toast('Oturum hatalı olarak işaretlendi', 'warn');
 }
 
 function activateAndScan(id) {
   DB.aktifId = id;
   const o = DB.oturumlar.find(x => x.id === id);
-  if (o && o.durum === 'beklemede') { o.durum = 'devam'; persist(); }
+  if (o && o.durum === 'beklemede') { o.durum = 'devam'; }
   persist();
   goTab('scan');
 }
 
 function deleteSes(id) {
-  if (!confirm(`Bu oturumu ve bağlı tüm verileri silmek istediğinize emin misiniz?`)) return;
+  if (!isAdmin()) { toast('Sadece yönetici silebilir', 'err'); return; }
+  if (!confirm('Bu oturumu ve tüm verileri silmek istiyor musunuz?')) return;
   DB.oturumlar = DB.oturumlar.filter(o => o.id !== id);
   if (DB.aktifId === id) DB.aktifId = null;
   persist();
   renderOturumlar();
+  if (document.getElementById('pg-yonetim').classList.contains('on')) renderYonetim();
   toast('Oturum silindi', 'info');
 }
 
@@ -660,12 +935,12 @@ function endSession() {
   if (!confirm('Oturumu kapatmak istiyor musunuz?')) return;
   const o = aktif();
   if (o) {
-    const stats = getSesStats(o);
-    o.durum = stats.eksik === 0 && stats.fazla === 0 ? 'tamamlandi' : 'sorunlu';
+    const st = getSesStats(o);
+    o.durum = st.eksik===0 && st.fazla===0 ? 'tamamlandi' : 'sorunlu';
     o.kapali = true;
     o.kapatmaTarih = new Date().toISOString();
     persist();
-    sendSheets({ action:'closeSession', oturumId:o.id, durum:o.durum, tamUrun:stats.tam, eksikUrun:stats.eksik, fazlaUrun:stats.fazla, toplamPkt:stats.toplamPkt, okutulan:stats.okutulan });
+    sendSheets({ action:'closeSession', oturumId:o.id, durum:o.durum, tamUrun:st.tam, eksikUrun:st.eksik, fazlaUrun:st.fazla, toplamPkt:st.toplamPkt, okutulan:st.okutulan });
   }
   stopCam();
   DB.aktifId = null;
@@ -683,96 +958,75 @@ function renderScanPage() {
   document.getElementById('scanNoSes').style.display  = o ? 'none'  : 'block';
   document.getElementById('scanHasSes').style.display = o ? 'block' : 'none';
   if (!o) return;
-
-  const tipLabel = o.tip === 'kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
+  const tipLabel = o.tip==='kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
   document.getElementById('scanAbarTxt').innerHTML =
-    `<span class="b ${o.tip === 'kabul' ? 'bc' : 'br'}">${tipLabel}</span> <span class="mono" style="font-size:12px">${o.id}</span> · ${o.depo}`;
-
+    `<span class="b ${o.tip==='kabul'?'bc':'br'}">${tipLabel}</span> <span class="mono" style="font-size:12px">${o.id}</span> · ${o.depo}`;
   renderProgress(o);
   renderUrunDurum(o);
-
-  setTimeout(() => {
-    const inp = document.getElementById('bcIn');
-    if (inp && !DB.cam) inp.focus();
-  }, 200);
+  setTimeout(() => { const inp=document.getElementById('bcIn'); if(inp&&!DB.cam) inp.focus(); }, 200);
 }
 
 function renderProgress(o) {
   const st = getSesStats(o);
-  const pct = st.toplamPkt > 0 ? Math.min(100, Math.round(st.okutulan / st.toplamPkt * 100)) : 0;
-
+  const pct = st.toplamPkt > 0 ? Math.min(100,Math.round(st.okutulan/st.toplamPkt*100)) : 0;
   document.getElementById('progTxt').textContent = `${st.okutulan} / ${st.toplamPkt} paket`;
   const fg = document.getElementById('progFg');
-  fg.style.width = pct + '%';
-  fg.style.background = pct >= 100
-    ? 'linear-gradient(90deg,var(--green),var(--cyan))'
-    : 'linear-gradient(90deg,var(--cyan),var(--warn))';
-
-  document.getElementById('progBadges').innerHTML = `
-    <span class="b bg">✓ Tam: ${st.tam}</span>
-    <span class="b bw">⚡ Eksik: ${st.eksik}</span>
-    ${st.fazla > 0 ? `<span class="b bp">+ Fazla: ${st.fazla}</span>` : ''}
-    <span class="b bb">${pct}%</span>`;
+  fg.style.width = pct+'%';
+  fg.style.background = pct>=100 ? '#22c55e' : 'var(--blue)';
+  document.getElementById('progBadges').innerHTML =
+    `<span class="b bg">✓ Tam: ${st.tam}</span>
+     <span class="b bw">⚡ Eksik: ${st.eksik}</span>
+     ${st.fazla>0?`<span class="b bp">+Fazla: ${st.fazla}</span>`:''}
+     <span class="b bb">${pct}%</span>`;
 }
 
 function renderUrunDurum(o) {
   const c = document.getElementById('urunDurum');
-  if (!o.urunler.length) { c.innerHTML = '<div class="empty"><div>Ürün yok</div></div>'; return; }
-
+  if (!o.urunler.length) { c.innerHTML='<div class="empty"><div>Ürün yok</div></div>'; return; }
   let html = '';
   o.urunler.forEach(u => {
-    const tp   = u.toplamPaket || 1;
-    const oks  = o.hareketler.filter(h => h.urunKodu === u.kod);
+    const tp  = u.toplamPaket || 1;
+    const oks = o.hareketler.filter(h => h.urunKodu===u.kod);
     const siralar = new Set(oks.map(h => h.paketSira));
-    const tam  = isUrunTam(o, u);
-
-    let cls, ico;
-    if (tam)            { cls='tam';   ico='✓'; }
+    const tam = isUrunTam(o,u);
+    let cls,ico;
+    if (tam)             { cls='tam';   ico='✓'; }
     else if (!oks.length){ cls='eksik'; ico='○'; }
-    else                { cls='kismi'; ico='◑'; }
-
-    let pkts = '';
-    for (let i = 1; i <= tp; i++) {
-      pkts += `<div class="pkb ${siralar.has(i)?'ok':'no'}">${i}</div>`;
-    }
-
-    html += `
-      <div class="urow ${cls}">
-        <div class="urow-ico">${ico}</div>
-        <div class="urow-body">
-          <div class="urow-ttl">${u.ad || u.kod}</div>
-          <div class="urow-sub">${u.kod}${u.musteri ? ' · ' + u.musteri : ''}</div>
-          <div class="urow-paket">${pkts}</div>
-        </div>
-        <div class="urow-cnt">
-          <div class="urow-cnt-n" style="color:${tam?'var(--green)':oks.length?'var(--warn)':'var(--red)'}">${oks.length}/${tp}</div>
-          <div class="urow-cnt-l">${cls.toUpperCase()}</div>
-        </div>
-      </div>`;
+    else                 { cls='kismi'; ico='◑'; }
+    let pkts='';
+    for (let i=1;i<=tp;i++) pkts+=`<div class="pkb ${siralar.has(i)?'ok':'no'}">${i}</div>`;
+    html+=`<div class="urow ${cls}">
+      <div class="urow-ico">${ico}</div>
+      <div class="urow-body">
+        <div class="urow-ttl">${u.ad||u.kod}</div>
+        <div class="urow-sub">${u.kod}${u.musteri?' · '+u.musteri:''}</div>
+        <div class="urow-paket">${pkts}</div>
+      </div>
+      <div class="urow-cnt">
+        <div class="urow-cnt-n" style="color:${tam?'#4ade80':oks.length?'#fbbf24':'#f87171'}">${oks.length}/${tp}</div>
+        <div class="urow-cnt-l">${cls.toUpperCase()}</div>
+      </div>
+    </div>`;
   });
-
-  // Fazla ürünler
   getFazla(o).forEach(kod => {
-    const n = o.hareketler.filter(h => h.urunKodu === kod).length;
-    html += `
-      <div class="urow fazla">
-        <div class="urow-ico">+</div>
-        <div class="urow-body">
-          <div class="urow-ttl" style="color:var(--purple)">${kod}</div>
-          <div class="urow-sub">Listede olmayan ürün</div>
-        </div>
-        <div class="urow-cnt">
-          <div class="urow-cnt-n" style="color:var(--purple)">${n}</div>
-          <div class="urow-cnt-l">FAZLA</div>
-        </div>
-      </div>`;
+    const n = o.hareketler.filter(h=>h.urunKodu===kod).length;
+    html+=`<div class="urow fazla">
+      <div class="urow-ico">+</div>
+      <div class="urow-body">
+        <div class="urow-ttl" style="color:#a78bfa">${kod}</div>
+        <div class="urow-sub">Listede olmayan ürün</div>
+      </div>
+      <div class="urow-cnt">
+        <div class="urow-cnt-n" style="color:#a78bfa">${n}</div>
+        <div class="urow-cnt-l">FAZLA</div>
+      </div>
+    </div>`;
   });
-
   c.innerHTML = html;
 }
 
 // ═══════════════════════════════════════════════════
-// BARKOD İŞLEME
+// BARKOD
 // ═══════════════════════════════════════════════════
 function doManual() {
   const v = document.getElementById('bcIn').value.trim();
@@ -784,87 +1038,57 @@ function doManual() {
 
 function doBarcode(raw) {
   const o = aktif();
-  if (!o) { toast('Oturum seçin!', 'err'); return; }
-
+  if (!o) { toast('Oturum seçin!','err'); return; }
   const p = parseGS1(raw);
-  if (p.err) { showRes('err', '⚠️', 'Parse Hatası', p.err, {}); feedback('err'); return; }
+  if (p.err) { showRes('err','⚠️','Parse Hatası',p.err,{}); feedback('err'); return; }
 
-  // MÜKERRER KONTROL
   if (p.seriNo) {
-    const once = o.hareketler.find(h => h.seriNo === p.seriNo);
+    const once = o.hareketler.find(h => h.seriNo===p.seriNo);
     if (once) {
       const t = new Date(once.ts).toLocaleTimeString('tr-TR');
-      showRes('dup', '🔁', 'Mükerrer Okutma!',
-        `Bu paket daha önce ${t} saatinde okutuldu.`,
-        { 'Ürün Kodu': p.urunKodu, 'Seri No': p.seriNo, 'Paket': `${p.paketSira}/${p.toplamPaket}` });
-      feedback('warn');
-      toast('⚠ Bu paket zaten okutulmuş!', 'warn');
-      return;
+      showRes('dup','🔁','Mükerrer Okutma!',`Bu paket ${t} saatinde okutuldu.`,{'Ürün':p.urunKodu,'Seri':p.seriNo});
+      feedback('warn'); toast('⚠ Mükerrer okutma!','warn'); return;
     }
   }
 
-  // Listede var mı?
-  const listeUrun = o.urunler.find(u => u.kod === p.urunKodu);
-  const listede = !!listeUrun;
+  const listeUrun = o.urunler.find(u => u.kod===p.urunKodu);
+  const listede   = !!listeUrun;
+  if (listeUrun && p.toplamPaket>1 && listeUrun.toplamPaket===1) listeUrun.toplamPaket = p.toplamPaket;
 
-  // Barkoddan gelen toplam paket sayısını ürüne yaz
-  if (listeUrun && p.toplamPaket > 1 && listeUrun.toplamPaket === 1) {
-    listeUrun.toplamPaket = p.toplamPaket;
-  }
-
-  // Kaydet
-  const h = {
-    id: Date.now(), ts: new Date().toISOString(),
-    urunKodu: p.urunKodu, gtin: p.gtin, seriNo: p.seriNo,
-    paketSira: p.paketSira, toplamPaket: p.toplamPaket,
-    sas: p.sas, fmt: p.fmt, listede, ham: p.ham
-  };
+  const h = { id:Date.now(), ts:new Date().toISOString(), urunKodu:p.urunKodu, gtin:p.gtin, seriNo:p.seriNo, paketSira:p.paketSira, toplamPaket:p.toplamPaket, sas:p.sas, fmt:p.fmt, listede, ham:p.ham };
   o.hareketler.push(h);
 
-  // Oturum durumunu güncelle
   const st = getSesStats(o);
-  if (st.okutulan >= st.toplamPkt && st.eksik === 0 && st.fazla === 0) {
-    o.durum = 'tamamlandi';
-  } else if (!listede || st.fazla > 0) {
-    o.durum = 'sorunlu';
-  } else {
-    o.durum = 'devam';
-  }
+  if (st.okutulan>=st.toplamPkt && st.eksik===0 && st.fazla===0) o.durum='tamamlandi';
+  else if (!listede||st.fazla>0) o.durum='sorunlu';
+  else o.durum='devam';
   persist();
 
-  // Sonuç
-  const tamMi = listeUrun ? isUrunTam(o, listeUrun) : false;
+  const tamMi = listeUrun ? isUrunTam(o,listeUrun) : false;
   if (!listede) {
-    showRes('warn', '⚡', 'Listede Olmayan Ürün!', 'Bu ürün beklenen listede yok.',
-      { 'Ürün Kodu': p.urunKodu, 'Paket': `${p.paketSira}/${p.toplamPaket}`, 'Seri No': p.seriNo, 'Format': p.fmt });
-    toast('⚡ Listede olmayan ürün!', 'warn');
+    showRes('warn','⚡','Listede Olmayan Ürün!','Bu ürün beklenen listede yok.',{'Ürün Kodu':p.urunKodu,'Paket':`${p.paketSira}/${p.toplamPaket}`,'Seri':p.seriNo});
+    toast('⚡ Listede olmayan ürün!','warn');
   } else if (tamMi) {
-    showRes('ok', '✅', `${listeUrun.ad || p.urunKodu} — Tamamlandı!`, null,
-      { 'Ürün Kodu': p.urunKodu, 'Paket': `${p.paketSira}/${p.toplamPaket}`, 'Seri No': p.seriNo, 'SAS': p.sas });
-    toast('✅ Ürün tamamlandı!', 'ok');
+    showRes('ok','✅',`${listeUrun.ad||p.urunKodu} — Tamamlandı!`,null,{'Ürün Kodu':p.urunKodu,'Paket':`${p.paketSira}/${p.toplamPaket}`,'Seri':p.seriNo,'SAS':p.sas});
+    toast('✅ Ürün tamamlandı!','ok');
   } else {
-    showRes('ok', '📦', 'Paket Kabul Edildi',
-      `${p.paketSira}/${p.toplamPaket} paket okutuldu`,
-      { 'Ürün Kodu': p.urunKodu, 'Ürün': listeUrun.ad, 'Seri No': p.seriNo, 'SAS': p.sas });
+    showRes('ok','📦','Paket Kabul Edildi',`${p.paketSira}/${p.toplamPaket} paket okutuldu`,{'Ürün Kodu':p.urunKodu,'Ürün':listeUrun.ad,'Seri':p.seriNo,'SAS':p.sas});
   }
 
-  feedback(listede ? 'ok' : 'warn');
-  if (DB.url) sendSheets({ action:'addHareket', oturumId:o.id, depo:o.depo, sorumlu:o.sorumlu, ...h });
-
+  feedback(listede?'ok':'warn');
+  if (DB.url) sendSheets({action:'addHareket', oturumId:o.id, depo:o.depo, sorumlu:o.sorumlu, ...h});
   renderProgress(o);
   renderUrunDurum(o);
 }
 
-function showRes(tip, ico, ttl, msg, fields) {
+function showRes(tip,ico,ttl,msg,fields) {
   const fhtml = Object.entries(fields).map(([k,v]) =>
-    `<div class="rf"><div class="rf-l">${k}</div><div class="rf-v">${v||'—'}</div></div>`
-  ).join('');
-  document.getElementById('resArea').innerHTML = `
-    <div class="res ${tip}">
-      <div class="res-hdr"><span class="res-ico">${ico}</span><span class="res-ttl">${ttl}</span></div>
-      ${msg ? `<div class="sm dim" style="margin-bottom:8px">${msg}</div>` : ''}
-      <div class="res-flds">${fhtml}</div>
-    </div>`;
+    `<div class="rf"><div class="rf-l">${k}</div><div class="rf-v">${v||'—'}</div></div>`).join('');
+  document.getElementById('resArea').innerHTML = `<div class="res ${tip}">
+    <div class="res-hdr"><span class="res-ico">${ico}</span><span class="res-ttl">${ttl}</span></div>
+    ${msg?`<div class="sm dim" style="margin-bottom:8px">${msg}</div>`:''}
+    <div class="res-flds">${fhtml}</div>
+  </div>`;
 }
 
 // ═══════════════════════════════════════════════════
@@ -872,50 +1096,34 @@ function showRes(tip, ico, ttl, msg, fields) {
 // ═══════════════════════════════════════════════════
 function parseGS1(raw) {
   raw = raw.trim();
-  if (raw.length < 4) return { err: 'Çok kısa' };
-
+  if (raw.length < 4) return { err:'Çok kısa' };
   if (raw.startsWith('01') && raw.length > 40) {
-    const gtin = raw.substring(2, 16);
-    const aiPkt = raw.substring(16, 18);
-    let paketSira = 1, seriNo = null;
-    if (aiPkt[0]==='2' && !isNaN(aiPkt[1])) {
-      paketSira = parseInt(aiPkt[1]) || 1;
-      seriNo = raw.substring(18, 36).trim();
-    }
-    let toplamPaket = 1;
-    const i97 = raw.indexOf('97');
-    if (i97 > 40) {
-      const a97 = raw.substring(i97+2, i97+18);
-      const son = parseInt(a97.slice(-1));
-      if (son > 0 && son < 10) toplamPaket = son;
-    }
-    let sas = null;
-    const i95 = raw.indexOf('95');
-    if (i95 > 40) sas = raw.substring(i95+2, i95+12);
-    const urunKodu = raw.slice(-10);
-    return { fmt:'GS1', gtin, urunKodu, seriNo, paketSira, toplamPaket, sas, ham:raw };
+    const gtin  = raw.substring(2,16);
+    const aiPkt = raw.substring(16,18);
+    let paketSira=1, seriNo=null;
+    if (aiPkt[0]==='2' && !isNaN(aiPkt[1])) { paketSira=parseInt(aiPkt[1])||1; seriNo=raw.substring(18,36).trim(); }
+    let toplamPaket=1;
+    const i97=raw.indexOf('97');
+    if (i97>40) { const son=parseInt(raw.substring(i97+2,i97+18).slice(-1)); if(son>0&&son<10) toplamPaket=son; }
+    let sas=null;
+    const i95=raw.indexOf('95');
+    if (i95>40) sas=raw.substring(i95+2,i95+12);
+    return { fmt:'GS1', gtin, urunKodu:raw.slice(-10), seriNo, paketSira, toplamPaket, sas, ham:raw };
   }
-
-  if (/^\d{8,14}$/.test(raw)) {
-    return { fmt:'EAN', gtin:raw, urunKodu:raw, seriNo:raw, paketSira:1, toplamPaket:1, sas:null, ham:raw };
-  }
-
+  if (/^\d{8,14}$/.test(raw)) return { fmt:'EAN', gtin:raw, urunKodu:raw, seriNo:raw, paketSira:1, toplamPaket:1, sas:null, ham:raw };
   return { fmt:'RAW', gtin:null, urunKodu:raw.slice(-10), seriNo:raw, paketSira:1, toplamPaket:1, sas:null, ham:raw };
 }
 
-// ═══════════════════════════════════════════════════
-// YARDIMCILAR
-// ═══════════════════════════════════════════════════
-function isUrunTam(o, u) {
-  const tp = u.toplamPaket || 1;
-  const siralar = new Set(o.hareketler.filter(h => h.urunKodu === u.kod).map(h => h.paketSira));
-  for (let i = 1; i <= tp; i++) { if (!siralar.has(i)) return false; }
+function isUrunTam(o,u) {
+  const tp = u.toplamPaket||1;
+  const s  = new Set(o.hareketler.filter(h=>h.urunKodu===u.kod).map(h=>h.paketSira));
+  for (let i=1;i<=tp;i++) if(!s.has(i)) return false;
   return true;
 }
 
 function getFazla(o) {
-  const bilinen = new Set(o.urunler.map(u => u.kod));
-  return [...new Set(o.hareketler.filter(h => !bilinen.has(h.urunKodu)).map(h => h.urunKodu))];
+  const b = new Set(o.urunler.map(u=>u.kod));
+  return [...new Set(o.hareketler.filter(h=>!b.has(h.urunKodu)).map(h=>h.urunKodu))];
 }
 
 // ═══════════════════════════════════════════════════
@@ -923,22 +1131,17 @@ function getFazla(o) {
 // ═══════════════════════════════════════════════════
 let qrSc = null;
 function startCam() {
-  if (!aktif()) { toast('Oturum seçin!', 'err'); return; }
+  if (!aktif()) { toast('Oturum seçin!','err'); return; }
   document.getElementById('camCard').style.display = 'block';
   document.getElementById('manCard').style.display = 'none';
   DB.cam = true;
   qrSc = new Html5Qrcode('qr-reader');
-  qrSc.start({ facingMode:'environment' },
-    { fps:10, qrbox:{width:240,height:240}, supportedScanTypes:[0,1] },
-    txt => {
-      if (DB.cool) return;
-      DB.cool = true; setTimeout(()=>{ DB.cool=false; }, 2500);
-      doBarcode(txt);
-    }, ()=>{}).catch(()=>{ toast('Kamera açılamadı','err'); stopCam(); });
+  qrSc.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:240},supportedScanTypes:[0,1]},
+    txt => { if(DB.cool) return; DB.cool=true; setTimeout(()=>{DB.cool=false;},2500); doBarcode(txt); },
+    ()=>{}).catch(()=>{ toast('Kamera açılamadı','err'); stopCam(); });
 }
-
 function stopCam() {
-  if (qrSc) { qrSc.stop().catch(()=>{}); qrSc = null; }
+  if (qrSc) { qrSc.stop().catch(()=>{}); qrSc=null; }
   DB.cam = false;
   document.getElementById('camCard').style.display = 'none';
   document.getElementById('manCard').style.display = aktif() ? 'block' : 'none';
@@ -949,152 +1152,112 @@ function stopCam() {
 // ═══════════════════════════════════════════════════
 function goRapor(id) {
   goTab('rapor');
-  setTimeout(() => {
-    document.getElementById('raporSel').value = id;
-    loadRapor();
-  }, 50);
+  setTimeout(() => { document.getElementById('raporSel').value=id; loadRapor(); }, 50);
 }
 
 function renderRaporSelect() {
   const sel = document.getElementById('raporSel');
   const cur = sel.value;
+  const liste = oturumFiltre();
   sel.innerHTML = '<option value="">Seçin...</option>' +
-    DB.oturumlar.map(o => `<option value="${o.id}">${o.id} — ${o.firma||'—'} (${o.tarih||'—'})</option>`).join('');
+    liste.map(o=>`<option value="${o.id}">${o.id} — ${o.firma||'—'} (${o.tarih||'—'})</option>`).join('');
   if (cur) sel.value = cur;
 }
 
 function loadRapor() {
   const id = document.getElementById('raporSel').value;
   if (!id) return;
-  const o = DB.oturumlar.find(x => x.id === id);
+  const o = DB.oturumlar.find(x=>x.id===id);
   if (!o) return;
 
-  const st   = getSesStats(o);
-  const tam  = o.urunler.filter(u => isUrunTam(o, u));
-  const eksik = o.urunler.filter(u => !isUrunTam(o, u));
+  const st    = getSesStats(o);
+  const tam   = o.urunler.filter(u=>isUrunTam(o,u));
+  const eksik = o.urunler.filter(u=>!isUrunTam(o,u));
   const fazla = getFazla(o);
   const mukerer = (() => {
-    const seen = new Set(), dups = [];
-    o.hareketler.forEach(h => {
-      if (h.seriNo && seen.has(h.seriNo)) dups.push(h);
-      else if (h.seriNo) seen.add(h.seriNo);
-    });
+    const seen=new Set(),dups=[];
+    o.hareketler.forEach(h=>{ if(h.seriNo&&seen.has(h.seriNo)) dups.push(h); else if(h.seriNo) seen.add(h.seriNo); });
     return dups;
   })();
 
-  const tipLabel = o.tip === 'kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
-
-  let html = `
-    <div class="card">
-      <div class="ct">Oturum Bilgisi</div>
-      <div class="g2" style="font-size:12px;gap:6px">
-        <div><span class="dim">ID: </span><span class="bold mono">${o.id}</span></div>
-        <div><span class="dim">Tip: </span>${tipLabel}</div>
-        <div><span class="dim">Depo: </span>${o.depo}</div>
-        <div><span class="dim">Firma: </span>${o.firma||'—'}</div>
-        <div><span class="dim">Plaka: </span>${o.plaka||'—'}</div>
-        <div><span class="dim">Tarih: </span>${o.tarih||'—'}</div>
-        <div><span class="dim">Sorumlu: </span>${o.sorumlu}</div>
-        <div>${getDurumBadge(o)}</div>
-      </div>
+  let html = `<div class="card">
+    <div class="ct">Oturum Bilgisi</div>
+    <div class="g2" style="font-size:12px;gap:6px">
+      <div><span class="dim">ID: </span><span class="bold mono">${o.id}</span></div>
+      <div><span class="dim">Tip: </span>${o.tip==='kabul'?'📦 MAL KABUL':'🚚 MAL ÇIKIŞ'}</div>
+      <div><span class="dim">Depo: </span>${o.depo}</div>
+      <div><span class="dim">Firma: </span>${o.firma||'—'}</div>
+      <div><span class="dim">Plaka: </span>${o.plaka||'—'}</div>
+      <div><span class="dim">Tarih: </span>${o.tarih||'—'}</div>
+      <div><span class="dim">Sorumlu: </span>${o.sorumlu}</div>
+      <div>${getDurumBadge(o)}</div>
     </div>
-    <div class="st-grid">
-      <div class="st-card"><div class="st-v" style="color:var(--green)">${tam.length}</div><div class="st-l">Tam Ürün</div></div>
-      <div class="st-card"><div class="st-v" style="color:var(--red)">${eksik.length}</div><div class="st-l">Eksik Ürün</div></div>
-      <div class="st-card"><div class="st-v" style="color:var(--purple)">${fazla.length}</div><div class="st-l">Fazla Ürün</div></div>
-      <div class="st-card"><div class="st-v" style="color:var(--warn)">${mukerer.length}</div><div class="st-l">Mükerrer</div></div>
-    </div>`;
+  </div>
+  <div class="st-grid">
+    <div class="st-card"><div class="st-v" style="color:#4ade80">${tam.length}</div><div class="st-l">Tam Ürün</div></div>
+    <div class="st-card"><div class="st-v" style="color:#f87171">${eksik.length}</div><div class="st-l">Eksik Ürün</div></div>
+    <div class="st-card"><div class="st-v" style="color:#a78bfa">${fazla.length}</div><div class="st-l">Fazla Ürün</div></div>
+    <div class="st-card"><div class="st-v" style="color:#fbbf24">${mukerer.length}</div><div class="st-l">Mükerrer</div></div>
+  </div>`;
 
   if (tam.length) {
-    html += `<div class="rblock"><div class="rttl" style="color:var(--green)">✓ Tam Gelen (${tam.length})</div>`;
-    tam.forEach(u => html += `
-      <div class="ritem">
-        <div><div style="font-size:13px;font-weight:700">${u.ad||u.kod}</div>
-        <div class="dim" style="font-size:10px;font-family:var(--mono)">${u.kod} · ${u.toplamPaket} paket${u.musteri?' · '+u.musteri:''}</div></div>
-        <span class="b bg">TAM</span></div>`);
-    html += '</div>';
+    html+=`<div class="rblock"><div class="rttl" style="color:#4ade80">✓ Tam Gelen (${tam.length})</div>`;
+    tam.forEach(u=>html+=`<div class="ritem">
+      <div><div style="font-size:13px;font-weight:600">${u.ad||u.kod}</div>
+      <div class="dim" style="font-size:10px;font-family:var(--mono)">${u.kod} · ${u.toplamPaket} paket${u.musteri?' · '+u.musteri:''}</div></div>
+      <span class="b bg">TAM</span></div>`);
+    html+='</div>';
   }
-
   if (eksik.length) {
-    html += `<div class="rblock"><div class="rttl" style="color:var(--red)">✗ Eksik (${eksik.length})</div>`;
+    html+=`<div class="rblock"><div class="rttl" style="color:#f87171">✗ Eksik (${eksik.length})</div>`;
     eksik.forEach(u => {
-      const ok = o.hareketler.filter(h => h.urunKodu === u.kod).length;
-      const siralar = new Set(o.hareketler.filter(h=>h.urunKodu===u.kod).map(h=>h.paketSira));
-      let pkts = '';
-      for (let i=1;i<=u.toplamPaket;i++) pkts += `<span class="pkb ${siralar.has(i)?'ok':'no'}" style="display:inline-flex;width:18px;height:18px;border-radius:4px;align-items:center;justify-content:center;font-size:9px;font-weight:700;margin-right:2px">${i}</span>`;
-      html += `
-        <div class="ritem">
-          <div><div style="font-size:13px;font-weight:700">${u.ad||u.kod}</div>
-          <div class="dim" style="font-size:10px;font-family:var(--mono)">${u.kod} · ${ok}/${u.toplamPaket} paket</div>
-          <div style="margin-top:4px">${pkts}</div></div>
-          <span class="b br">EKSİK</span></div>`;
+      const ok=o.hareketler.filter(h=>h.urunKodu===u.kod).length;
+      const sir=new Set(o.hareketler.filter(h=>h.urunKodu===u.kod).map(h=>h.paketSira));
+      let pkts='';
+      for(let i=1;i<=u.toplamPaket;i++) pkts+=`<span style="display:inline-flex;width:20px;height:20px;border-radius:4px;align-items:center;justify-content:center;font-size:9px;font-weight:700;margin:1px;background:${sir.has(i)?'var(--green-soft)':'var(--red-soft)'};color:${sir.has(i)?'#4ade80':'#f87171'}">${i}</span>`;
+      html+=`<div class="ritem"><div>
+        <div style="font-size:13px;font-weight:600">${u.ad||u.kod}</div>
+        <div class="dim" style="font-size:10px;font-family:var(--mono)">${u.kod} · ${ok}/${u.toplamPaket} paket</div>
+        <div style="margin-top:5px">${pkts}</div>
+      </div><span class="b br">EKSİK</span></div>`;
     });
-    html += '</div>';
+    html+='</div>';
   }
-
   if (fazla.length) {
-    html += `<div class="rblock"><div class="rttl" style="color:var(--purple)">+ Fazla (${fazla.length})</div>`;
-    fazla.forEach(kod => {
-      const n = o.hareketler.filter(h=>h.urunKodu===kod).length;
-      html += `<div class="ritem"><div><div style="font-size:13px;font-weight:700;color:var(--purple)">${kod}</div><div class="dim" style="font-size:10px">Listede yok · ${n} paket</div></div><span class="b bp">FAZLA</span></div>`;
+    html+=`<div class="rblock"><div class="rttl" style="color:#a78bfa">+ Fazla (${fazla.length})</div>`;
+    fazla.forEach(kod=>{
+      const n=o.hareketler.filter(h=>h.urunKodu===kod).length;
+      html+=`<div class="ritem"><div><div style="font-size:13px;font-weight:600;color:#a78bfa">${kod}</div><div class="dim" style="font-size:10px">Listede yok · ${n} paket</div></div><span class="b bp">FAZLA</span></div>`;
     });
-    html += '</div>';
+    html+='</div>';
   }
-
   if (mukerer.length) {
-    html += `<div class="rblock"><div class="rttl" style="color:var(--warn)">⚠ Mükerrer (${mukerer.length})</div>`;
-    mukerer.forEach(h => {
-      html += `<div class="ritem"><div><div style="font-size:13px;font-weight:700">${h.urunKodu}</div><div class="dim" style="font-size:10px;font-family:var(--mono)">${h.seriNo||'—'} · ${new Date(h.ts).toLocaleTimeString('tr-TR')}</div></div><span class="b bw">MÜKERRER</span></div>`;
-    });
-    html += '</div>';
+    html+=`<div class="rblock"><div class="rttl" style="color:#fbbf24">⚠ Mükerrer (${mukerer.length})</div>`;
+    mukerer.forEach(h=>html+=`<div class="ritem"><div><div style="font-size:13px;font-weight:600">${h.urunKodu}</div><div class="dim" style="font-size:10px;font-family:var(--mono)">${h.seriNo||'—'} · ${new Date(h.ts).toLocaleTimeString('tr-TR')}</div></div><span class="b bw">MÜKERRER</span></div>`);
+    html+='</div>';
   }
 
   document.getElementById('raporBody').innerHTML = html;
 }
 
 // ═══════════════════════════════════════════════════
-// XLSX YÜKLEME
-// ═══════════════════════════════════════════════════
-function loadXlsx(input) {
-  const file = input.files[0];
-  if (!file) return;
-  document.getElementById('xlsxLabel').textContent = file.name;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const wb = XLSX.read(e.target.result, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-      // Tab-separated satırlara çevir (parseOnizleme ile uyumlu)
-      const tsv = rows.map(r => r.join('\t')).join('\n');
-      document.getElementById('nf-liste').value = tsv;
-      toast(`${file.name} yüklendi (${rows.length} satır)`, 'ok');
-    } catch(err) {
-      toast('xlsx okunamadı: ' + err.message, 'err');
-    }
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-// ═══════════════════════════════════════════════════
 // AYARLAR
 // ═══════════════════════════════════════════════════
 function renderAyarlar() {
-  document.getElementById('cfgUrl').value = DB.url;
+  document.getElementById('cfgUrl').value     = DB.url;
+  document.getElementById('colKod').value     = DB.cols.kod;
+  document.getElementById('colAd').value      = DB.cols.ad;
+  document.getElementById('colMiktar').value  = DB.cols.miktar;
+  document.getElementById('colDetay').value   = DB.cols.detay;
+  document.getElementById('colSas').value     = DB.cols.sas;
+  document.getElementById('colMusteri').value = DB.cols.musteri;
   updateQDot();
-  document.getElementById('colKod').value    = DB.cols.kod;
-  document.getElementById('colAd').value     = DB.cols.ad;
-  document.getElementById('colMiktar').value = DB.cols.miktar;
-  document.getElementById('colDetay').value  = DB.cols.detay;
-  document.getElementById('colSas').value    = DB.cols.sas;
-  document.getElementById('colMusteri').value= DB.cols.musteri;
-  renderDepoList();
 }
 
 function saveConfig() {
   DB.url = document.getElementById('cfgUrl').value.trim();
   localStorage.setItem('d3_url', DB.url);
-  toast('Kaydedildi', 'ok');
+  toast('Kaydedildi','ok');
   if (DB.url) testConn();
 }
 
@@ -1108,47 +1271,63 @@ function saveCols() {
     musteri: parseInt(document.getElementById('colMusteri').value)
   };
   localStorage.setItem('d3_cols', JSON.stringify(DB.cols));
-  toast('Sütun ayarları kaydedildi', 'ok');
+  toast('Sütun ayarları kaydedildi','ok');
 }
 
 async function testConn() {
   setDot('...');
-  try {
-    await fetch(DB.url + '?action=ping', { mode: 'no-cors' });
-    setDot('ok'); toast('Bağlantı OK ✓', 'ok');
-  } catch(e) {
-    setDot('err'); toast('Bağlantı hatası: ' + e.message, 'err');
-  }
+  try { await fetch(DB.url+'?action=ping',{mode:'no-cors'}); setDot('ok'); toast('Bağlantı OK ✓','ok'); }
+  catch(e) { setDot('err'); toast('Bağlantı hatası','err'); }
 }
 
+// ═══════════════════════════════════════════════════
+// DEPO YÖNETİMİ
+// ═══════════════════════════════════════════════════
 function addDepo() {
-  const v = document.getElementById('newDepo').value.trim();
-  if (!v || DB.depolar.includes(v)) return;
+  const v = document.getElementById('yNewDepo').value.trim();
+  if (!v || DB.depolar.includes(v)) { toast('Depo adı boş veya zaten var','err'); return; }
   DB.depolar.push(v);
   localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
-  document.getElementById('newDepo').value = '';
+  document.getElementById('yNewDepo').value = '';
   renderDepoList();
+  fillDepoSelect('nf-depo');
+  fillDepoSelectAdmin('yDepo');
+  toast(`${v} eklendi`,'ok');
 }
 
 function renderDepoList() {
   document.getElementById('depoListEl').innerHTML = DB.depolar.map((d,i) =>
-    `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:13px">${d}</span>
-      <button onclick="rmDepo(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:15px">✕</button>
+    `<div class="ulist-row">
+      <span style="font-size:13px">🏭 ${d}</span>
+      <button class="btn btn-r btn-sm" onclick="rmDepo(${i})">Sil</button>
     </div>`).join('');
 }
 
 function rmDepo(i) {
+  if (!confirm(`"${DB.depolar[i]}" deposunu silmek istiyor musunuz?`)) return;
   DB.depolar.splice(i,1);
   localStorage.setItem('d3_depolar',JSON.stringify(DB.depolar));
   renderDepoList();
+  fillDepoSelect('nf-depo');
 }
 
 function fillDepoSelect(id) {
   const s = document.getElementById(id);
   if (!s) return;
+  const k = ben();
   const cur = s.value;
+  let depolar = DB.depolar;
+  // Normal kullanıcı sadece kendi deposunu görür
+  if (k && k.depo !== '*') depolar = depolar.filter(d => d === k.depo);
   s.innerHTML = '<option value="">Seçin...</option>' +
+    depolar.map(d=>`<option${d===cur?' selected':''}>${d}</option>`).join('');
+}
+
+function fillDepoSelectAdmin(id) {
+  const s = document.getElementById(id);
+  if (!s) return;
+  const cur = s.value;
+  s.innerHTML = '<option value="">Depo seçin...</option><option value="*">Tüm Depolar (Admin)</option>' +
     DB.depolar.map(d=>`<option${d===cur?' selected':''}>${d}</option>`).join('');
 }
 
@@ -1159,33 +1338,29 @@ const SQ = { q: JSON.parse(localStorage.getItem('d3_sq')||'[]'), busy: false };
 
 function sendSheets(data) {
   if (!DB.url) return;
-  SQ.q.push({ ...data, _ts: Date.now() });
+  SQ.q.push({...data, _ts:Date.now()});
   localStorage.setItem('d3_sq', JSON.stringify(SQ.q));
   updateQDot();
   if (!SQ.busy) sqFlush();
 }
 
 async function sqFlush() {
-  if (!SQ.q.length || !DB.url) { SQ.busy = false; return; }
+  if (!SQ.q.length || !DB.url) { SQ.busy=false; return; }
   SQ.busy = true;
   const item = SQ.q[0];
   const params = new URLSearchParams();
-  for (const [k, v] of Object.entries(item)) {
-    if (k === '_ts') continue;
-    if (v === null || v === undefined) continue;
-    params.append(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
+  for (const [k,v] of Object.entries(item)) {
+    if (k==='_ts' || v===null || v===undefined) continue;
+    params.append(k, typeof v==='object'?JSON.stringify(v):String(v));
   }
   try {
-    await fetch(DB.url, { method: 'POST', mode: 'no-cors', body: params });
+    await fetch(DB.url,{method:'POST',mode:'no-cors',body:params});
     SQ.q.shift();
-    localStorage.setItem('d3_sq', JSON.stringify(SQ.q));
-    setDot('ok');
-    updateQDot();
-    setTimeout(sqFlush, 150);
+    localStorage.setItem('d3_sq',JSON.stringify(SQ.q));
+    setDot('ok'); updateQDot();
+    setTimeout(sqFlush,150);
   } catch(e) {
-    setDot('err');
-    SQ.busy = false;
-    setTimeout(sqFlush, 8000);
+    setDot('err'); SQ.busy=false; setTimeout(sqFlush,8000);
   }
 }
 
@@ -1195,9 +1370,7 @@ function updateQDot() {
 }
 
 function sqRetryNow() {
-  SQ.busy = false;
-  sqFlush();
-  toast('Yeniden deneniyor...', 'info');
+  SQ.busy=false; sqFlush(); toast('Yeniden deneniyor...','info');
 }
 
 // ═══════════════════════════════════════════════════
@@ -1208,11 +1381,11 @@ function toast(msg, type='info') {
   const t=document.createElement('div');
   t.className=`toast ${type}`; t.textContent=msg;
   c.appendChild(t);
-  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); },2500);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},2500);
 }
 
 function setDot(s) {
-  const d=document.getElementById('dot'), t=document.getElementById('dotTxt');
+  const d=document.getElementById('dot'),t=document.getElementById('dotTxt');
   if(s==='ok'){d.className='dot ok';t.textContent='Bağlı';}
   else if(s==='err'){d.className='dot err';t.textContent='Hata';}
   else{d.className='dot';t.textContent='...';}
@@ -1239,11 +1412,13 @@ function goTab(name) {
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById('pg-'+name).classList.add('on');
-  document.getElementById('t-'+name).classList.add('on');
+  const tab = document.getElementById('t-'+name);
+  if (tab) tab.classList.add('on');
   if(name==='scan')      renderScanPage();
   if(name==='oturumlar') renderOturumlar();
   if(name==='rapor')     renderRaporSelect();
   if(name==='ayarlar')   renderAyarlar();
+  if(name==='yonetim')   renderYonetim();
 }
 
 // ═══════════════════════════════════════════════════
@@ -1259,9 +1434,11 @@ document.getElementById('bcIn').addEventListener('blur', () => {
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
-fillDepoSelect('nf-depo');
-renderOturumlar();
-if (DB.url) { setDot('ok'); sqFlush(); }
+if (DB.aktifKullanici) {
+  startApp();
+} else {
+  document.getElementById('loginScreen').style.display = 'flex';
+}
 </script>
 </body>
 </html>
