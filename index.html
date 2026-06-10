@@ -679,48 +679,79 @@ function loadXlsx(input) {
 // ═══════════════════════════════════════════════════
 // LİSTE PARSER
 // ═══════════════════════════════════════════════════
+// Başlık anahtar kelimeleri — otomatik sütun tespiti
+const HDR_MAP = {
+  kod:     ['malzeme kodu','ürün kodu','kod','material','item code','product code'],
+  ad:      ['ürün adı','ürün adi','ürün ad','product name','description','aciklama','açıklama'],
+  miktar:  ['miktar','adet','qty','quantity','amount'],
+  detay:   ['ürün detayı','ürün detay','detay','detail','renk','color'],
+  sas:     ['prosap','sas kalem','kalem no'],
+  musteri: ['müşteri','musteri','customer','müşteri adı','musteri adi']
+};
+
+function detectCols(headerRow) {
+  const cells = headerRow.split('\t').map(c => c.trim().toLowerCase());
+  const result = { kod:-1, ad:-1, miktar:-1, detay:-1, sas:-1, musteri:-1 };
+  cells.forEach((cell, i) => {
+    for (const [key, keywords] of Object.entries(HDR_MAP)) {
+      if (result[key] === -1 && keywords.some(kw => cell.includes(kw))) {
+        result[key] = i;
+      }
+    }
+  });
+  return result;
+}
+
 function parseOnizleme() {
   const raw = document.getElementById('nf-liste').value.trim();
   if (!raw) { toast('Liste boş!', 'err'); return; }
-  const c = DB.cols;
   const satirlar = raw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
   parsedUrunler = [];
 
-  // TEŞHİS: ilk 3 satırı ve sütun değerlerini göster
-  const ilk3 = satirlar.slice(0,3).map((s,i) => {
-    const cols = s.split('\t');
-    return `<div style="margin-bottom:6px;font-size:10px">
-      <div style="color:var(--warn);margin-bottom:2px">Satır ${i+1} (${cols.length} sütun):</div>
-      ${cols.map((v,ci)=>`<div style="padding:1px 0"><span style="color:var(--dim);width:20px;display:inline-block">[${ci}]</span> <span class="mono">${v||'<boş>'}</span>${ci===c.kod?' ← KOD':ci===c.ad?' ← AD':ci===c.miktar?' ← MİKTAR':ci===c.musteri?' ← MÜŞTERİ':''}</div>`).join('')}
-    </div>`;
-  }).join('<hr style="border-color:var(--border);margin:6px 0">');
-  document.getElementById('onizlemeIcerik').innerHTML = `<div style="background:rgba(217,119,6,.1);border:1px solid rgba(217,119,6,.3);border-radius:6px;padding:10px;margin-bottom:10px">
-    <div style="font-size:10px;font-weight:700;color:var(--warn);margin-bottom:8px">📊 TEŞHİS — Toplam ${satirlar.length} satır okundu</div>
-    ${ilk3}
-    <div style="font-size:10px;color:var(--dim);margin-top:8px">Sütun indeksleri yanlışsa Ayarlar → Sütun Eşleştirme'den düzeltin</div>
+  // İlk satırı başlık olarak dene; bulunamazsa ayarlardan al
+  let c = DB.cols;
+  let veriBaslangic = 0;
+  const autoC = detectCols(satirlar[0]);
+  if (autoC.kod !== -1 && autoC.miktar !== -1) {
+    c = autoC;
+    veriBaslangic = 1; // başlık satırını atla
+  }
+
+  // TEŞHİS kutusu
+  const hdrSatir = satirlar[veriBaslangic] || '';
+  const hdrCols  = hdrSatir.split('\t');
+  const diag = hdrCols.map((v,ci) => {
+    const etiket = ci===c.kod?' ✦ KOD':ci===c.ad?' ✦ AD':ci===c.miktar?' ✦ MİKTAR':ci===c.musteri?' ✦ MÜŞTERİ':ci===c.detay?' ✦ DETAY':ci===c.sas?' ✦ SAS':'';
+    return `<div style="padding:2px 0;font-size:10px"><span style="color:var(--dim);min-width:24px;display:inline-block">[${ci}]</span><span class="mono">${v||'<boş>'}</span><span style="color:#4ade80;font-weight:600">${etiket}</span></div>`;
+  }).join('');
+  document.getElementById('onizlemeIcerik').innerHTML = `<div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:6px;padding:10px;margin-bottom:10px">
+    <div style="font-size:10px;font-weight:700;color:#60a5fa;margin-bottom:6px">${veriBaslangic===1?'✓ Başlık otomatik algılandı':'⚠ Başlık algılanamadı — ayarlardaki indeksler kullanıldı'} · Toplam ${satirlar.length - veriBaslangic} veri satırı</div>
+    ${diag}
   </div>`;
   document.getElementById('onizleme').style.display = 'block';
 
-  satirlar.forEach(satir => {
+  satirlar.slice(veriBaslangic).forEach(satir => {
     const cols = satir.split('\t');
-    if (cols.length < 3) return;
-    const kod = (cols[c.kod] || '').trim();
-    const ad  = (cols[c.ad]  || '').trim();
-    const miktarRaw = (cols[c.miktar] || '').toString().trim();
-    const detay   = (cols[c.detay]   || '').trim();
-    const sas     = (cols[c.sas]     || '').trim();
-    const musteri = (cols[c.musteri] || '').trim();
+    if (cols.length < 2) return;
+    const kod     = (cols[c.kod]     || '').toString().trim();
+    const ad      = (cols[c.ad]      || '').toString().trim();
+    const miktarRaw = (cols[c.miktar] !== undefined ? cols[c.miktar] : '').toString().trim();
+    const detay   = (cols[c.detay]   || '').toString().trim();
+    const sas     = (cols[c.sas]     || '').toString().trim();
+    const musteri = (cols[c.musteri] || '').toString().trim();
 
-    // Sadece gerçekten boş satırları ve ÜRÜN KODU başlık satırını atla
     if (!kod || kod.length < 2) return;
-    if (kod.toUpperCase() === 'MALZEME KODU' || kod.toUpperCase() === 'ÜRÜN KODU' || kod.toUpperCase() === 'KOD') return;
 
-    // Miktar: virgüllü ondalık, noktalı ondalık veya tam sayı olabilir
-    const miktar = Math.round(parseFloat(miktarRaw.replace(',', '.')) || 1);
+    // Miktar: virgüllü ondalık, noktalı ondalık veya tam sayı
+    const miktar = Math.max(1, Math.round(parseFloat(miktarRaw.replace(',', '.')) || 1));
 
     const existing = parsedUrunler.find(u => u.kod === kod);
-    if (existing) { existing.miktar += miktar; }
-    else parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: 1 });
+    if (existing) {
+      // Aynı kodlu satırları AYRI tut (aynı ürün farklı müşteri/sözleşme)
+      parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: 1 });
+    } else {
+      parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: 1 });
+    }
   });
 
   if (parsedUrunler.length === 0) { toast('Hiç ürün bulunamadı. Sütun sıralarını kontrol edin.', 'err'); return; }
