@@ -691,12 +691,18 @@ function parseOnizleme() {
     if (cols.length < 3) return;
     const kod = (cols[c.kod] || '').trim();
     const ad  = (cols[c.ad]  || '').trim();
-    const miktarStr = (cols[c.miktar] || '1').trim();
+    const miktarRaw = (cols[c.miktar] || '').toString().trim();
     const detay   = (cols[c.detay]   || '').trim();
     const sas     = (cols[c.sas]     || '').trim();
     const musteri = (cols[c.musteri] || '').trim();
-    if (!kod || kod.length < 4 || isNaN(Number(kod[0]))) return; // başlık satırı filtrele
-    const miktar = parseInt(miktarStr) || 1;
+
+    // Sadece gerçekten boş satırları ve ÜRÜN KODU başlık satırını atla
+    if (!kod || kod.length < 2) return;
+    if (kod.toUpperCase() === 'MALZEME KODU' || kod.toUpperCase() === 'ÜRÜN KODU' || kod.toUpperCase() === 'KOD') return;
+
+    // Miktar: virgüllü ondalık, noktalı ondalık veya tam sayı olabilir
+    const miktar = Math.round(parseFloat(miktarRaw.replace(',', '.')) || 1);
+
     const existing = parsedUrunler.find(u => u.kod === kod);
     if (existing) { existing.miktar += miktar; }
     else parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: 1 });
