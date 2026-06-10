@@ -547,12 +547,48 @@ function startApp() {
   document.getElementById('userName').textContent = k.ad;
   document.getElementById('hdrDepo').textContent = k.depo === '*' ? 'Tüm Depolar · Yönetici' : k.depo;
 
-  // Yönetim sekmesi sadece admin'e görünür
   document.getElementById('t-yonetim').style.display = isAdmin() ? 'flex' : 'none';
 
   fillDepoSelect('nf-depo');
   renderOturumlar();
-  if (DB.url) { setDot('ok'); sqFlush(); }
+  if (DB.url) { setDot('ok'); sqFlush(); syncFromSheets(); }
+}
+
+async function syncFromSheets() {
+  if (!DB.url) return;
+  try {
+    const res = await fetch(DB.url + '?action=getSessions', { mode: 'cors' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (!json.ok || !Array.isArray(json.data)) return;
+
+    let eklenen = 0, guncellenen = 0;
+    json.data.forEach(remote => {
+      if (!remote.id) return;
+      const local = DB.oturumlar.find(o => o.id === remote.id);
+      if (!local) {
+        DB.oturumlar.push(remote);
+        eklenen++;
+      } else {
+        // Sheets'teki durum/kapali bilgisi daha güncel olabilir
+        if (remote.kapali && !local.kapali) {
+          local.kapali = true;
+          local.durum  = remote.durum;
+          local.hatali = remote.hatali || false;
+          guncellenen++;
+        }
+      }
+    });
+
+    if (eklenen > 0 || guncellenen > 0) {
+      persist();
+      renderOturumlar();
+      toast(`Sheets'ten ${eklenen} yeni, ${guncellenen} güncellendi`, 'info');
+    }
+    setDot('ok');
+  } catch(e) {
+    // Sessizce geç — no-cors modda zaten response okunamaz olabilir
+  }
 }
 
 function sifreDegistir() {
