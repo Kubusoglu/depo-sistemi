@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Depo Yönetim Sistemi</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
 :root{
@@ -223,8 +224,16 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
     <div class="ct">Ürün Listesini Yapıştır</div>
 
     <div class="ig">
-      <label class="lbl">Excel'den Kopyalanan Liste</label>
-      <textarea class="inp" id="nf-liste" rows="8"
+      <label class="lbl">Excel Dosyası Yükle (.xlsx / .xls)</label>
+      <label style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px dashed var(--border2);border-radius:var(--r8);padding:10px 12px;cursor:pointer">
+        <span style="font-size:18px">📂</span>
+        <span style="font-size:12px;color:var(--dim2)" id="xlsxLabel">Dosya seçin veya sürükleyin...</span>
+        <input type="file" id="xlsxFile" accept=".xlsx,.xls" style="display:none" onchange="loadXlsx(this)">
+      </label>
+    </div>
+    <div class="ig">
+      <label class="lbl">veya Excel'den Kopyalayıp Yapıştırın</label>
+      <textarea class="inp" id="nf-liste" rows="6"
         placeholder="Excel'den kopyalayıp buraya yapıştırın.&#10;Beklenen sütun sırası:&#10;SAS KALEM NO | SÖZLEŞME NO | MÜŞTERİ ADI | MALZEME KODU | ÜRÜN ADI | ÜRÜN DETAYI | MİKTAR&#10;&#10;Sadece MALZEME KODU, ÜRÜN ADI ve MİKTAR zorunlu."></textarea>
     </div>
 
@@ -332,7 +341,14 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
       <label class="lbl">Apps Script URL</label>
       <input type="url" class="inp mono" id="cfgUrl" style="font-size:10px" placeholder="https://script.google.com/macros/s/...">
     </div>
-    <button class="btn btn-p" onclick="saveConfig()">Kaydet & Test Et</button>
+    <div class="fr mt8" style="margin-bottom:8px">
+      <button class="btn btn-p btn-sm" onclick="saveConfig()">Kaydet & Test Et</button>
+      <button class="btn btn-g btn-sm" onclick="sqRetryNow()">↻ Kuyruğu Gönder</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:7px 10px;background:var(--s2);border-radius:var(--r8);border:1px solid var(--border)">
+      <span style="color:var(--dim)">Gönderim Kuyruğu</span>
+      <span id="qPending" style="font-family:var(--mono);color:var(--warn)">—</span>
+    </div>
   </div>
   <div class="card">
     <div class="ct">Depo Listesi</div>
@@ -556,11 +572,11 @@ function renderOturumlar() {
         </div>
         <div class="oses-prog">
           <div class="prog-bg">
-            <div class="prog-fg" style="width:${pct}%;background:linear-gradient(90deg,${o.tip==='kabul'?'var(--cyan)':'var(--red)'},${pct>=100?'var(--green)':'var(--warn)+'})"></div>
+            <div class="prog-fg" style="width:${pct}%;background:linear-gradient(90deg,${o.tip==='kabul'?'var(--cyan)':'var(--red)'},${pct>=100?'var(--green)':'var(--warn)'})"></div>
           </div>
         </div>
         <div style="display:flex;gap:6px;margin-top:8px">
-          ${o.durum !== 'kapali' ? `<button class="btn btn-p btn-sm" onclick="event.stopPropagation();activateAndScan('${o.id}')">Okutmaya Başla →</button>` : ''}
+          ${!o.kapali ? `<button class="btn btn-p btn-sm" onclick="event.stopPropagation();activateAndScan('${o.id}')">Okutmaya Başla →</button>` : ''}
           <button class="btn btn-g btn-sm" onclick="event.stopPropagation();goRapor('${o.id}')">Rapor</button>
           <button class="btn btn-r btn-sm" onclick="event.stopPropagation();deleteSes('${o.id}')">Sil</button>
         </div>
@@ -570,11 +586,13 @@ function renderOturumlar() {
 
 function getDurumBadge(o) {
   const s = o.durum;
+  if (o.kapali && s === 'tamamlandi') return '<span class="b bg">✓ KAPALI · TAM</span>';
+  if (o.kapali && s === 'sorunlu')    return '<span class="b br">✕ KAPALI · SORUNLU</span>';
+  if (o.kapali)                       return '<span class="b" style="background:rgba(255,255,255,.05);color:var(--dim)">KAPALI</span>';
   if (s === 'beklemede')   return '<span class="b bw">⏳ BEKLENİYOR</span>';
   if (s === 'devam')       return '<span class="b bc">▶ DEVAM EDİYOR</span>';
   if (s === 'tamamlandi')  return '<span class="b bg">✓ TAMAMLANDI</span>';
   if (s === 'sorunlu')     return '<span class="b br">⚠ SORUNLU</span>';
-  if (s === 'kapali')      return '<span class="b" style="background:rgba(255,255,255,.05);color:var(--dim)">KAPALI</span>';
   return '';
 }
 
@@ -615,7 +633,10 @@ function endSession() {
   if (o) {
     const stats = getSesStats(o);
     o.durum = stats.eksik === 0 && stats.fazla === 0 ? 'tamamlandi' : 'sorunlu';
+    o.kapali = true;
+    o.kapatmaTarih = new Date().toISOString();
     persist();
+    sendSheets({ action:'closeSession', oturumId:o.id, durum:o.durum, tamUrun:stats.tam, eksikUrun:stats.eksik, fazlaUrun:stats.fazla, toplamPkt:stats.toplamPkt, okutulan:stats.okutulan });
   }
   stopCam();
   DB.aktifId = null;
@@ -1003,10 +1024,35 @@ function loadRapor() {
 }
 
 // ═══════════════════════════════════════════════════
+// XLSX YÜKLEME
+// ═══════════════════════════════════════════════════
+function loadXlsx(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('xlsxLabel').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      // Tab-separated satırlara çevir (parseOnizleme ile uyumlu)
+      const tsv = rows.map(r => r.join('\t')).join('\n');
+      document.getElementById('nf-liste').value = tsv;
+      toast(`${file.name} yüklendi (${rows.length} satır)`, 'ok');
+    } catch(err) {
+      toast('xlsx okunamadı: ' + err.message, 'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ═══════════════════════════════════════════════════
 // AYARLAR
 // ═══════════════════════════════════════════════════
 function renderAyarlar() {
   document.getElementById('cfgUrl').value = DB.url;
+  updateQDot();
   document.getElementById('colKod').value    = DB.cols.kod;
   document.getElementById('colAd').value     = DB.cols.ad;
   document.getElementById('colMiktar').value = DB.cols.miktar;
@@ -1037,8 +1083,13 @@ function saveCols() {
 }
 
 async function testConn() {
-  try { await fetch(DB.url+'?action=ping',{mode:'no-cors'}); setDot('ok'); toast('Bağlantı OK ✓','ok'); }
-  catch(e) { setDot('err'); }
+  setDot('...');
+  try {
+    await fetch(DB.url + '?action=ping', { mode: 'no-cors' });
+    setDot('ok'); toast('Bağlantı OK ✓', 'ok');
+  } catch(e) {
+    setDot('err'); toast('Bağlantı hatası: ' + e.message, 'err');
+  }
 }
 
 function addDepo() {
@@ -1073,23 +1124,51 @@ function fillDepoSelect(id) {
 }
 
 // ═══════════════════════════════════════════════════
-// GOOGLE SHEETS
+// GOOGLE SHEETS — retry queue
 // ═══════════════════════════════════════════════════
+const SQ = { q: JSON.parse(localStorage.getItem('d3_sq')||'[]'), busy: false };
+
 function sendSheets(data) {
   if (!DB.url) return;
+  SQ.q.push({ ...data, _ts: Date.now() });
+  localStorage.setItem('d3_sq', JSON.stringify(SQ.q));
+  updateQDot();
+  if (!SQ.busy) sqFlush();
+}
+
+async function sqFlush() {
+  if (!SQ.q.length || !DB.url) { SQ.busy = false; return; }
+  SQ.busy = true;
+  const item = SQ.q[0];
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(item)) {
+    if (k === '_ts') continue;
+    if (v === null || v === undefined) continue;
+    params.append(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
+  }
   try {
-    const f = document.createElement('form');
-    f.method='POST'; f.action=DB.url; f.target='hif_frame'; f.style.display='none';
-    for (const [k,v] of Object.entries(data)) {
-      if (typeof v === 'object') continue;
-      const inp = document.createElement('input');
-      inp.type='hidden'; inp.name=k; inp.value=String(v||'');
-      f.appendChild(inp);
-    }
-    document.body.appendChild(f);
-    f.submit();
-    setTimeout(()=>{ document.body.removeChild(f); setDot('ok'); }, 800);
-  } catch(e){ setDot('err'); }
+    await fetch(DB.url, { method: 'POST', mode: 'no-cors', body: params });
+    SQ.q.shift();
+    localStorage.setItem('d3_sq', JSON.stringify(SQ.q));
+    setDot('ok');
+    updateQDot();
+    setTimeout(sqFlush, 150);
+  } catch(e) {
+    setDot('err');
+    SQ.busy = false;
+    setTimeout(sqFlush, 8000);
+  }
+}
+
+function updateQDot() {
+  const el = document.getElementById('qPending');
+  if (el) el.textContent = SQ.q.length > 0 ? `${SQ.q.length} bekliyor` : 'Kuyruk boş';
+}
+
+function sqRetryNow() {
+  SQ.busy = false;
+  sqFlush();
+  toast('Yeniden deneniyor...', 'info');
 }
 
 // ═══════════════════════════════════════════════════
@@ -1153,12 +1232,7 @@ document.getElementById('bcIn').addEventListener('blur', () => {
 // ═══════════════════════════════════════════════════
 fillDepoSelect('nf-depo');
 renderOturumlar();
-if(DB.url) setDot('ok');
-
-// iframe gönderim için
-const hif = document.createElement('iframe');
-hif.name='hif_frame'; hif.style.display='none';
-document.body.appendChild(hif);
+if (DB.url) { setDot('ok'); sqFlush(); }
 </script>
 </body>
 </html>
