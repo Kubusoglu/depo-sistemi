@@ -1576,8 +1576,11 @@ async function startCam(sesId) {
         videoConstraints: { facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} }
       },
       txt => {
-        if (!DB.camSesId) return;   // kamera durdurulduktan sonra gelen callback'leri yok say
+        if (!DB.camSesId) return;
         if (isDuplicate(txt)) return;
+        // Kamerayı duraklat — tampondaki eski kareler tekrar tetiklemesin
+        try { qrSc.pause(true); } catch(e) {}
+        setTimeout(() => { try { if (qrSc) qrSc.resume(); } catch(e) {} }, 3000);
         doBarcode(DB.camSesId, txt);
       },
       ()=>{}
