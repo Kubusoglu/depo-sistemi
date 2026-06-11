@@ -898,9 +898,9 @@ function parseOnizleme() {
     const existing = parsedUrunler.find(u => u.kod === kod);
     if (existing) {
       // Aynı kodlu satırları AYRI tut (aynı ürün farklı müşteri/sözleşme)
-      parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: miktar });
+      parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: 1 });
     } else {
-      parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: miktar });
+      parsedUrunler.push({ kod, ad, miktar, detay, sas, musteri, toplamPaket: 1 });
     }
   });
 
@@ -1081,8 +1081,9 @@ function getDurumBadge(o) {
 }
 
 function getSesStats(o) {
-  const toplamPkt = o.urunler.reduce((s,u) => s+(u.toplamPaket||1), 0);
-  const okutulan  = o.hareketler.length;
+  // toplamPkt = her ürün için (miktar × toplamPaket) toplamı
+  const toplamPkt = o.urunler.reduce((s,u) => s + (u.miktar||1)*(u.toplamPaket||1), 0);
+  const okutulan  = o.hareketler.filter(h => o.urunler.some(u=>u.kod===h.urunKodu)).length;
   const tam       = o.urunler.filter(u => isUrunTam(o,u)).length;
   const eksik     = o.urunler.filter(u => !isUrunTam(o,u)).length;
   const fazla     = getFazla(o).length;
@@ -1266,25 +1267,35 @@ function buildScanCard(o) {
 function buildUrunDurum(o) {
   let html = '';
   o.urunler.forEach(u => {
-    const tp  = u.toplamPaket || 1;
-    const oks = o.hareketler.filter(h => h.urunKodu===u.kod);
-    const sir = new Set(oks.map(h => h.paketSira));
-    const tam = isUrunTam(o,u);
+    const tp   = u.toplamPaket || 1;
+    const adet = u.miktar || 1;
+    const oks  = o.hareketler.filter(h => h.urunKodu===u.kod);
+    const tam  = isUrunTam(o,u);
     let cls,ico;
     if (tam)              { cls='tam';   ico='✓'; }
     else if (!oks.length) { cls='eksik'; ico='○'; }
     else                  { cls='kismi'; ico='◑'; }
+    // Her paket sırası için kutu: kaç kez okutuldu / kaç adet bekleniyor
     let pkts='';
-    for (let i=1;i<=tp;i++) pkts+=`<div class="pkb ${sir.has(i)?'ok':'no'}">${i}</div>`;
+    for (let i=1; i<=tp; i++) {
+      const cnt = oks.filter(h=>h.paketSira===i).length;
+      const full = cnt >= adet;
+      const part = cnt > 0 && !full;
+      const bg   = full ? 'var(--green-soft)' : part ? 'rgba(251,191,36,.15)' : 'var(--red-soft)';
+      const col  = full ? '#4ade80'            : part ? '#fbbf24'              : '#f87171';
+      const lbl  = adet > 1 ? `${i}<br><span style="font-size:7px">${cnt}/${adet}</span>` : `${i}`;
+      pkts += `<div class="pkb" style="background:${bg};color:${col};border:1px solid ${col}33;width:${adet>1?'28px':'20px'};height:${adet>1?'28px':'20px'};line-height:1.1;flex-direction:column">${lbl}</div>`;
+    }
+    const toplamBeklenen = adet * tp;
     html+=`<div class="urow ${cls}">
       <div class="urow-ico">${ico}</div>
       <div class="urow-body">
         <div class="urow-ttl">${u.ad||u.kod}</div>
-        <div class="urow-sub">${u.kod}${u.musteri?' · '+u.musteri:''}</div>
+        <div class="urow-sub">${u.kod}${u.musteri?' · '+u.musteri:''} · ${adet} adet × ${tp} paket</div>
         <div class="urow-paket">${pkts}</div>
       </div>
       <div class="urow-cnt">
-        <div class="urow-cnt-n" style="color:${tam?'#4ade80':oks.length?'#fbbf24':'#f87171'}">${oks.length}/${tp}</div>
+        <div class="urow-cnt-n" style="color:${tam?'#4ade80':oks.length?'#fbbf24':'#f87171'}">${oks.length}/${toplamBeklenen}</div>
         <div class="urow-cnt-l">${cls}</div>
       </div>
     </div>`;
@@ -1486,9 +1497,13 @@ function parseGS1(raw) {
 }
 
 function isUrunTam(o,u) {
-  const tp = u.toplamPaket||1;
-  const s  = new Set(o.hareketler.filter(h=>h.urunKodu===u.kod).map(h=>h.paketSira));
-  for (let i=1;i<=tp;i++) if(!s.has(i)) return false;
+  const tp  = u.toplamPaket || 1;
+  const adet = u.miktar || 1;
+  const oks = o.hareketler.filter(h=>h.urunKodu===u.kod);
+  // Her paket sırası tam olarak 'adet' kez okutulmuş olmalı
+  for (let i=1; i<=tp; i++) {
+    if (oks.filter(h=>h.paketSira===i).length < adet) return false;
+  }
   return true;
 }
 
