@@ -1612,8 +1612,10 @@ function buildSayimDurum(o) {
 }
 
 function getFazla(o) {
-  const b = new Set(o.urunler.map(u=>u.kod));
-  return [...new Set(o.hareketler.filter(h=>!b.has(h.urunKodu)).map(h=>h.urunKodu))];
+  const b = new Set(o.urunler.map(u=>String(u.kod).trim()));
+  return [...new Set(o.hareketler
+    .filter(h => h.urunKodu && !b.has(String(h.urunKodu).trim()))
+    .map(h => String(h.urunKodu).trim()))];
 }
 
 // ═══════════════════════════════════════════════════
