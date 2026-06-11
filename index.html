@@ -1117,15 +1117,18 @@ async function deleteSes(id) {
   if (!confirm('Bu oturumu ve tüm verileri silmek istiyor musunuz?')) return;
 
   // Sheets'ten sil
+  let sheetsOk = false;
   try {
     const res = await fetch(DB.url, {
       method:'POST', mode:'cors', redirect:'follow',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ action:'deleteSession', oturumId: id })
     });
-    await res.json().catch(() => {});
+    const json = await res.json().catch(() => null);
+    sheetsOk = json && json.ok;
+    if (!sheetsOk) toast('Sheets silme hatası: ' + (json ? json.err || JSON.stringify(json) : 'yanıt yok'), 'err');
   } catch(e) {
-    sendSheets({ action:'deleteSession', oturumId: id });
+    toast('Sheets bağlantı hatası: ' + e.message, 'err');
   }
 
   // Yerelden sil, silinenleri hatırla (sync geri getirmesin)
