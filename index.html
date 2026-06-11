@@ -493,6 +493,7 @@ const DB = {
   cols:      JSON.parse(localStorage.getItem('d3_cols') || '{"kod":4,"ad":5,"miktar":7,"detay":6,"sas":0,"musteri":3}'),
   kullanicilar: JSON.parse(localStorage.getItem('d3_users') || '[{"id":"admin","ad":"admin","sifre":"admin1234","depo":"*","rol":"admin"}]'),
   aktifKullanici: JSON.parse(localStorage.getItem('d3_aktif_k') || 'null'),
+  deletedSesIds: JSON.parse(localStorage.getItem('d3_deleted') || '[]'),
   // Scan state (session-level, not persisted)
   scanExpanded: new Set(), // hangi kartlar açık
   camSesId: null,          // kamera hangi oturuma bağlı
@@ -624,6 +625,7 @@ async function doSync(silent) {
     let eklenen = 0;
     remoteSes.forEach(r => {
       if (!r.id) return;
+      if (DB.deletedSesIds.includes(r.id)) return; // silinmiş, geri getirme
       const l = DB.oturumlar.find(o => o.id === r.id);
       if (!l) { DB.oturumlar.push(r); eklenen++; }
       else if (r.kapali && !l.kapali) { l.kapali = r.kapali; l.durum = r.durum; l.hatali = r.hatali || false; degisti = true; }
@@ -1098,15 +1100,31 @@ function activateAndScan(id) {
   goTab('scan');
 }
 
-function deleteSes(id) {
+async function deleteSes(id) {
   if (!isAdmin()) { toast('Sadece yönetici silebilir', 'err'); return; }
   if (!confirm('Bu oturumu ve tüm verileri silmek istiyor musunuz?')) return;
+
+  // Sheets'ten sil
+  try {
+    const res = await fetch(DB.url, {
+      method:'POST', mode:'cors', redirect:'follow',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'deleteSession', oturumId: id })
+    });
+    await res.json().catch(() => {});
+  } catch(e) {
+    sendSheets({ action:'deleteSession', oturumId: id });
+  }
+
+  // Yerelden sil, silinenleri hatırla (sync geri getirmesin)
   DB.oturumlar = DB.oturumlar.filter(o => o.id !== id);
+  if (!DB.deletedSesIds.includes(id)) DB.deletedSesIds.push(id);
+  localStorage.setItem('d3_deleted', JSON.stringify(DB.deletedSesIds));
   if (DB.aktifId === id) DB.aktifId = null;
   persist();
   renderOturumlar();
   if (document.getElementById('pg-yonetim').classList.contains('on')) renderYonetim();
-  toast('Oturum silindi', 'info');
+  toast('Oturum silindi ✓', 'info');
 }
 
 function endSession(id) {
