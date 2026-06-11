@@ -596,25 +596,29 @@ async function doSync(silent) {
     const remoteSes = sesJson.data || [];
     let degisti = false;
 
-    // Depolar — çift yönlü
-    remoteD.forEach(d => { if (d && !DB.depolar.includes(d)) { DB.depolar.push(d); degisti = true; } });
-    DB.depolar.forEach(d => { if (!remoteD.includes(d)) sendSheets({ action:'saveDepo', ad:d }); });
-    if (degisti) localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
-
-    // Kullanıcılar — çift yönlü
-    if (remoteK.length > 0) {
-      remoteK.forEach(r => {
-        const l = DB.kullanicilar.find(k => k.id === r.id);
-        if (!l) { DB.kullanicilar.push(r); degisti = true; }
-        else if (l.sifre !== r.sifre || l.depo !== r.depo || l.rol !== r.rol) {
-          l.sifre = r.sifre; l.depo = r.depo; l.rol = r.rol; degisti = true;
-        }
-      });
+    // Depolar — Sheets tek kaynak, tamamen replace
+    if (remoteD.length > 0) {
+      DB.depolar = remoteD.filter(d => d);
+      localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
+      degisti = true;
     }
-    DB.kullanicilar.forEach(k => {
-      if (!remoteK.find(r => r.id === k.id)) sendSheets({ action:'saveUser', ...k });
-    });
-    if (degisti) persistUsers();
+
+    // Kullanıcılar — Sheets tek kaynak, tamamen replace
+    if (remoteK.length > 0) {
+      // Mevcut oturumu koru (sifre değişmiş olabilir)
+      const aktif = ben();
+      DB.kullanicilar = remoteK;
+      persistUsers();
+      // Aktif kullanıcının bilgilerini güncelle
+      if (aktif) {
+        const guncel = remoteK.find(k => k.id === aktif.id);
+        if (guncel) {
+          DB.aktifKullanici = { id: guncel.id, ad: guncel.ad, depo: guncel.depo, rol: guncel.rol };
+          localStorage.setItem('d3_aktif_k', JSON.stringify(DB.aktifKullanici));
+        }
+      }
+      degisti = true;
+    }
 
     // Oturumlar
     let eklenen = 0;
@@ -666,7 +670,7 @@ function sifreDegistir() {
 // ═══════════════════════════════════════════════════
 // YÖNETİM — Kullanıcı
 // ═══════════════════════════════════════════════════
-function addUser() {
+async function addUser() {
   const ad    = document.getElementById('yAd').value.trim();
   const sifre = document.getElementById('ySifre').value.trim();
   const depo  = document.getElementById('yDepo').value;
@@ -674,23 +678,42 @@ function addUser() {
   if (!ad || !sifre || !depo) { toast('Tüm alanları doldurun', 'err'); return; }
   if (DB.kullanicilar.find(u => u.ad === ad)) { toast('Bu kullanıcı adı zaten var', 'err'); return; }
   const k = { id: Date.now().toString(), ad, sifre, depo, rol };
+
+  // Önce Sheets'e yaz (CORS ile doğrula)
+  const btn = document.querySelector('#kullaniciListEl')?.previousElementSibling?.querySelector('button') || document.body;
+  try {
+    const res  = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'saveUser',...k}) });
+    const json = await res.json().catch(() => ({}));
+    if (!json.ok) throw new Error(json.err || 'Sheets yazma hatası');
+  } catch(e) {
+    // CORS hatası olabilir, no-cors ile tekrar dene ve devam et
+    sendSheets({ action:'saveUser', ...k });
+  }
+
   DB.kullanicilar.push(k);
   persistUsers();
   document.getElementById('yAd').value = '';
   document.getElementById('ySifre').value = '';
   renderYonetim();
-  toast(`${ad} eklendi`, 'ok');
-  sendSheets({ action:'saveUser', ...k });
+  toast(`${ad} eklendi ✓`, 'ok');
 }
 
-function removeUser(id) {
+async function removeUser(id) {
   if (id === ben().id) { toast('Kendinizi silemezsiniz', 'err'); return; }
   if (!confirm('Bu kullanıcıyı silmek istiyor musunuz?')) return;
+
+  // Önce Sheets'ten sil
+  try {
+    const res  = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteUser', id}) });
+    await res.json().catch(() => {});
+  } catch(e) {
+    sendSheets({ action:'deleteUser', id });
+  }
+
   DB.kullanicilar = DB.kullanicilar.filter(u => u.id !== id);
   persistUsers();
   renderYonetim();
-  toast('Kullanıcı silindi', 'info');
-  sendSheets({ action:'deleteUser', id });
+  toast('Kullanıcı silindi ✓', 'info');
 }
 
 // ═══════════════════════════════════════════════════
@@ -1581,7 +1604,7 @@ async function testConn() {
 // ═══════════════════════════════════════════════════
 // DEPO YÖNETİMİ
 // ═══════════════════════════════════════════════════
-function addDepo() {
+async function addDepo() {
   const v = document.getElementById('yNewDepo').value.trim();
   if (!v || DB.depolar.includes(v)) { toast('Depo adı boş veya zaten var','err'); return; }
   DB.depolar.push(v);
@@ -1590,8 +1613,11 @@ function addDepo() {
   renderDepoList();
   fillDepoSelect('nf-depo');
   fillDepoSelectAdmin('yDepo');
-  toast(`${v} eklendi`,'ok');
-  sendSheets({ action:'saveDepo', ad:v });
+  try {
+    const res = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'saveDepo', ad:v}) });
+    await res.json().catch(() => {});
+  } catch(e) { sendSheets({ action:'saveDepo', ad:v }); }
+  toast(`${v} eklendi ✓`,'ok');
 }
 
 function renderDepoList() {
@@ -1602,14 +1628,17 @@ function renderDepoList() {
     </div>`).join('');
 }
 
-function rmDepo(i) {
+async function rmDepo(i) {
   const ad = DB.depolar[i];
   if (!confirm(`"${ad}" deposunu silmek istiyor musunuz?`)) return;
   DB.depolar.splice(i,1);
   localStorage.setItem('d3_depolar',JSON.stringify(DB.depolar));
   renderDepoList();
   fillDepoSelect('nf-depo');
-  sendSheets({ action:'deleteDepo', ad });
+  try {
+    const res = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteDepo', ad}) });
+    await res.json().catch(() => {});
+  } catch(e) { sendSheets({ action:'deleteDepo', ad }); }
 }
 
 function fillDepoSelect(id) {
