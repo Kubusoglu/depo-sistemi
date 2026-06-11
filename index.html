@@ -497,7 +497,8 @@ const DB = {
   // Scan state (session-level, not persisted)
   scanExpanded: new Set(), // hangi kartlar açık
   camSesId: null,          // kamera hangi oturuma bağlı
-  cool: false
+  cool: false,
+  lastBarcode: null
 };
 
 let parsedUrunler = [];
@@ -1461,38 +1462,59 @@ function getFazla(o) {
 // KAMERA
 // ═══════════════════════════════════════════════════
 let qrSc = null;
-function startCam(sesId) {
-  if (DB.camSesId && DB.camSesId !== sesId) stopCam();
+async function startCam(sesId) {
+  // Önce önceki kamerayı tamamen durdur
+  if (qrSc) {
+    try { await qrSc.stop(); } catch(e) {}
+    qrSc = null;
+  }
   DB.camSesId = sesId;
-  // Kamera konteynerini bu kartın slotuna taşı
+  DB.cool = false;
+  DB.lastBarcode = null;
+
   const slot = document.getElementById('camSlot-'+sesId);
   if (!slot) return;
   const cam = document.getElementById('camContainer');
   cam.style.display = 'block';
   slot.innerHTML = '';
   slot.appendChild(cam);
-  // "Kamera Aç" butonunu gizle
-  qrSc = new Html5Qrcode('qr-reader');
-  qrSc.start(
-    {facingMode:'environment'},
-    {fps:10, qrbox:{width:240,height:240}, supportedScanTypes:[0,1]},
-    txt => {
-      if (DB.cool) return;
-      DB.cool = true;
-      setTimeout(()=>{ DB.cool=false; }, 2500);
-      doBarcode(DB.camSesId, txt);
-    },
-    ()=>{}
-  ).catch(()=>{ toast('Kamera açılamadı','err'); stopCam(); });
+
+  // qr-reader div'ini sıfırla
+  const qrEl = document.getElementById('qr-reader');
+  qrEl.innerHTML = '';
+
+  try {
+    qrSc = new Html5Qrcode('qr-reader');
+    await qrSc.start(
+      {facingMode:'environment'},
+      {fps:8, qrbox:{width:240,height:240}, supportedScanTypes:[0,1]},
+      txt => {
+        if (DB.cool) return;
+        if (DB.lastBarcode === txt) return; // aynı barkod tekrar okunmasın
+        DB.cool = true;
+        DB.lastBarcode = txt;
+        setTimeout(()=>{ DB.cool=false; DB.lastBarcode=null; }, 5000);
+        doBarcode(DB.camSesId, txt);
+      },
+      ()=>{}
+    );
+  } catch(e) {
+    toast('Kamera açılamadı: ' + e.message, 'err');
+    await stopCam();
+  }
 }
-function stopCam() {
-  if (qrSc) { qrSc.stop().catch(()=>{}); qrSc=null; }
+
+async function stopCam() {
+  if (qrSc) {
+    try { await qrSc.stop(); } catch(e) {}
+    qrSc = null;
+  }
+  DB.cool = false;
+  DB.lastBarcode = null;
   const cam = document.getElementById('camContainer');
   cam.style.display = 'none';
-  // Konteyneri body'ye geri taşı (DOM'dan kopmadan)
   document.getElementById('appWrap').appendChild(cam);
   DB.camSesId = null;
-  // Scan kartını güncelle (kamera butonunu geri getir)
   renderScanPage();
 }
 
