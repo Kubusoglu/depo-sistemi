@@ -1274,7 +1274,7 @@ function buildScanCard(o) {
       <!-- Barkod input -->
       <div style="display:flex;gap:6px;margin-bottom:8px">
         <input type="text" class="inp mono" id="bc-${o.id}"
-          placeholder="Barkod okutun veya yazın..."
+          placeholder="Barkod veya urunKodu/paketNo..."
           autocomplete="off" autocorrect="off" autocapitalize="off"
           style="font-size:12px"
           onkeydown="if(event.key==='Enter') doManual('${o.id}')">
@@ -1398,8 +1398,45 @@ function refreshScanCard(id) {
 function doManual(sesId) {
   const inp = document.getElementById('bc-'+sesId);
   if (!inp) return;
-  const v = inp.value.trim();
+  let v = inp.value.trim();
   if (!v) return;
+  // "urunKodu/paketNo" veya "urunKodu/paketNo/toplamPaket" formatı
+  const m = v.match(/^(\d{6,18})\/(\d+)(?:\/(\d+))?$/);
+  if (m) {
+    const urunKodu = m[1];
+    const paketSira = parseInt(m[2]) || 1;
+    const toplamPaket = parseInt(m[3]) || paketSira;
+    // Sahte bir GS1-benzeri ham değer yerine doğrudan hareket oluştur
+    const o = DB.oturumlar.find(x=>x.id===sesId);
+    if (!o) return;
+    const seriNo = urunKodu + '_p' + paketSira;
+    const once = o.hareketler.find(h=>h.seriNo===seriNo);
+    if (once) {
+      const t = new Date(once.ts).toLocaleTimeString('tr-TR');
+      showRes(sesId,'dup','🔁','Mükerrer!',`Bu paket ${t} saatinde girildi.`,{'Ürün':urunKodu,'Paket':`${paketSira}/${toplamPaket}`});
+      feedback('warn'); inp.value=''; inp.focus(); return;
+    }
+    const isSayim = o.tip === 'sayim';
+    const listeUrun = isSayim ? null : o.urunler.find(u=>String(u.kod).trim()===urunKodu);
+    const listede = isSayim ? true : !!listeUrun;
+    if (listeUrun && toplamPaket > (listeUrun.toplamPaket||1)) listeUrun.toplamPaket = toplamPaket;
+    const h = { id:Date.now(), ts:new Date().toISOString(), urunKodu, gtin:null, seriNo, paketSira, toplamPaket, sas:null, fmt:'MANUEL', listede, ham:v };
+    o.hareketler.push(h);
+    if (isSayim) { o.durum='devam'; }
+    else {
+      const st = getSesStats(o);
+      if (st.okutulan>=st.toplamPkt && st.eksik===0 && st.fazla===0) o.durum='tamamlandi';
+      else if (!listede||st.fazla>0) o.durum='sorunlu';
+      else o.durum='devam';
+    }
+    persist();
+    const tamMi = listeUrun ? isUrunTam(o,listeUrun) : false;
+    showRes(sesId,'ok','✏️','Manuel Giriş',isSayim?`Paket ${paketSira}/${toplamPaket}`:(tamMi?'Ürün tamamlandı!':listede?`${paketSira}/${toplamPaket} paket`:'Listede olmayan ürün'),{'Ürün Kodu':urunKodu,'Paket':`${paketSira}/${toplamPaket}`});
+    feedback(listede?'ok':'warn');
+    if (DB.url) sendSheets({action:'addHareket', oturumId:o.id, depo:o.depo, sorumlu:o.sorumlu, ...h});
+    refreshScanCard(sesId);
+    inp.value=''; inp.focus(); return;
+  }
   doBarcode(sesId, v);
   inp.value = '';
   inp.focus();
@@ -1792,11 +1829,80 @@ function renderRaporSelect() {
   if (cur) sel.value = cur;
 }
 
+function loadSayimRapor(o) {
+  const tipLabel = '🔢 SAYIM';
+  const mukerer = (() => {
+    const seen=new Set(),dups=[];
+    o.hareketler.forEach(h=>{ if(h.seriNo&&seen.has(h.seriNo)) dups.push(h); else if(h.seriNo) seen.add(h.seriNo); });
+    return dups;
+  })();
+
+  // Build per-product summary
+  const map = new Map();
+  o.hareketler.forEach(h => {
+    if (!map.has(h.urunKodu)) map.set(h.urunKodu, { tp:0, counts:{} });
+    const u = map.get(h.urunKodu);
+    u.tp = Math.max(u.tp, h.toplamPaket||1);
+    u.counts[h.paketSira] = (u.counts[h.paketSira]||0) + 1;
+  });
+
+  let tamAdet = 0;
+  map.forEach(data => { tamAdet += data.tp>1 ? Math.min(...Array.from({length:data.tp},(_,i)=>data.counts[i+1]||0)) : (data.counts[1]||0); });
+
+  let html = `<div class="card">
+    <div class="ct">Oturum Bilgisi</div>
+    <div class="g2" style="font-size:12px;gap:6px">
+      <div><span class="dim">ID: </span><span class="bold mono">${o.id}</span></div>
+      <div><span class="dim">Tip: </span>${tipLabel}</div>
+      <div><span class="dim">Depo: </span>${o.depo}</div>
+      <div><span class="dim">Tarih: </span>${o.tarih||'—'}</div>
+      <div><span class="dim">Sorumlu: </span>${o.sorumlu}</div>
+      <div>${getDurumBadge(o)}</div>
+    </div>
+  </div>
+  <div class="st-grid">
+    <div class="st-card"><div class="st-v" style="color:#4ade80">${map.size}</div><div class="st-l">Ürün Çeşidi</div></div>
+    <div class="st-card"><div class="st-v" style="color:#60a5fa">${o.hareketler.length}</div><div class="st-l">Toplam Paket</div></div>
+    <div class="st-card"><div class="st-v" style="color:#a78bfa">${tamAdet}</div><div class="st-l">Tam Ürün</div></div>
+    <div class="st-card"><div class="st-v" style="color:#fbbf24">${mukerer.length}</div><div class="st-l">Mükerrer</div></div>
+  </div>`;
+
+  if (map.size) {
+    html += `<div class="rblock"><div class="rttl" style="color:#a78bfa">📦 Sayım Detayı (${map.size} ürün)</div>`;
+    for (const [kod, data] of map) {
+      const tp = data.tp || 1;
+      const perPkt = Array.from({length:tp}, (_,i) => data.counts[i+1]||0);
+      const tam = tp>1 ? Math.min(...perPkt) : perPkt[0];
+      const extraLines = perPkt.map((c,i)=>c>tam?`P${i+1}:+${c-tam} fazla`:'').filter(Boolean).join(' ');
+      let boxes = perPkt.map((c,i)=>`<span style="display:inline-flex;flex-direction:column;align-items:center;width:28px;height:32px;border-radius:4px;justify-content:center;font-size:9px;font-weight:700;margin:1px;background:${c>0?'var(--green-soft)':'var(--red-soft)'};color:${c>0?'#4ade80':'#f87171'}">${i+1}<span style="font-size:8px">${c}</span></span>`).join('');
+      html += `<div class="ritem" style="align-items:flex-start;flex-direction:column;gap:6px">
+        <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
+          <div><div style="font-size:13px;font-weight:600;font-family:var(--mono)">${kod}</div>
+          <div class="dim" style="font-size:10px">${tam} tam ürün · ${tp} paket/ürün${extraLines?' · <span style="color:#fbbf24">'+extraLines+'</span>':''}</div></div>
+          <span class="b bg">${tam}</span>
+        </div>
+        <div>${boxes}</div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+
+  if (mukerer.length) {
+    html+=`<div class="rblock"><div class="rttl" style="color:#fbbf24">⚠ Mükerrer (${mukerer.length})</div>`;
+    mukerer.forEach(h=>html+=`<div class="ritem"><div><div style="font-size:13px;font-weight:600">${h.urunKodu}</div><div class="dim" style="font-size:10px;font-family:var(--mono)">${h.seriNo||'—'} · ${new Date(h.ts).toLocaleTimeString('tr-TR')}</div></div><span class="b bw">MÜKERRER</span></div>`);
+    html+='</div>';
+  }
+
+  document.getElementById('raporBody').innerHTML = html;
+}
+
 function loadRapor() {
   const id = document.getElementById('raporSel').value;
   if (!id) return;
   const o = DB.oturumlar.find(x=>x.id===id);
   if (!o) return;
+
+  if (o.tip === 'sayim') { loadSayimRapor(o); return; }
 
   const st    = getSesStats(o);
   const tam   = o.urunler.filter(u=>isUrunTam(o,u));
@@ -1812,7 +1918,7 @@ function loadRapor() {
     <div class="ct">Oturum Bilgisi</div>
     <div class="g2" style="font-size:12px;gap:6px">
       <div><span class="dim">ID: </span><span class="bold mono">${o.id}</span></div>
-      <div><span class="dim">Tip: </span>${o.tip==='kabul'?'📦 MAL KABUL':'🚚 MAL ÇIKIŞ'}</div>
+      <div><span class="dim">Tip: </span>${o.tip==='kabul'?'📦 MAL KABUL':o.tip==='sayim'?'🔢 SAYIM':'🚚 MAL ÇIKIŞ'}</div>
       <div><span class="dim">Depo: </span>${o.depo}</div>
       <div><span class="dim">Firma: </span>${o.firma||'—'}</div>
       <div><span class="dim">Plaka: </span>${o.plaka||'—'}</div>
