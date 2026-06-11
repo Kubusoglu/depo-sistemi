@@ -696,7 +696,7 @@ async function addUser() {
   // Önce Sheets'e yaz (CORS ile doğrula)
   const btn = document.querySelector('#kullaniciListEl')?.previousElementSibling?.querySelector('button') || document.body;
   try {
-    const res  = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'saveUser',...k}) });
+    const res  = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify({action:'saveUser',...k}) });
     const json = await res.json().catch(() => ({}));
     if (!json.ok) throw new Error(json.err || 'Sheets yazma hatası');
   } catch(e) {
@@ -718,7 +718,7 @@ async function removeUser(id) {
 
   // Önce Sheets'ten sil
   try {
-    const res  = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteUser', id}) });
+    const res  = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify({action:'deleteUser', id}) });
     await res.json().catch(() => {});
   } catch(e) {
     sendSheets({ action:'deleteUser', id });
@@ -1121,7 +1121,7 @@ async function deleteSes(id) {
   try {
     const res = await fetch(DB.url, {
       method:'POST', mode:'cors', redirect:'follow',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
       body: JSON.stringify({ action:'deleteSession', oturumId: id })
     });
     const json = await res.json().catch(() => null);
@@ -1647,7 +1647,7 @@ async function addDepo() {
   fillDepoSelect('nf-depo');
   fillDepoSelectAdmin('yDepo');
   try {
-    const res = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'saveDepo', ad:v}) });
+    const res = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify({action:'saveDepo', ad:v}) });
     await res.json().catch(() => {});
   } catch(e) { sendSheets({ action:'saveDepo', ad:v }); }
   toast(`${v} eklendi ✓`,'ok');
@@ -1669,7 +1669,7 @@ async function rmDepo(i) {
   renderDepoList();
   fillDepoSelect('nf-depo');
   try {
-    const res = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'deleteDepo', ad}) });
+    const res = await fetch(DB.url, { method:'POST', mode:'cors', redirect:'follow', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify({action:'deleteDepo', ad}) });
     await res.json().catch(() => {});
   } catch(e) { sendSheets({ action:'deleteDepo', ad }); }
 }
