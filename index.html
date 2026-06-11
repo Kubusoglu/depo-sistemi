@@ -1475,52 +1475,69 @@ function parseGS1(raw) {
   if (raw.length < 4) return { err:'Çok kısa' };
 
   if (raw.startsWith('01') && raw.length > 20) {
-    const gtin   = raw.substring(2,16);
-    let rem      = raw.substring(16);
-    let paketSira=1, toplamPaket=1, seriNo=null, sas=null;
-    let i=0;
-    while (i < rem.length) {
-      if (rem[i] === '\x1d') { i++; continue; }
-      const ai2 = rem.substring(i,i+2);
-      const ai3 = rem.substring(i,i+3);
-      if (ai2==='21') {           // Seri no (variable ≤20, GS-terminated)
-        let end = rem.indexOf('\x1d', i+2);
-        if (end<0) end = Math.min(i+22, rem.length);
-        seriNo = rem.substring(i+2, end);
-        // N/T veya NNNNN.TTTTT pattern'i seri içinde ara
-        const m = seriNo.match(/[^0-9]?0*(\d+)[\/.]0*(\d+)/);
-        if (m) { paketSira=parseInt(m[1])||1; toplamPaket=parseInt(m[2])||1; }
-        // Fallback: seri no'nun son hanesi paket sırası (Kelebek formatı: ...7511 → paket 1)
-        else if (paketSira===1) {
-          const son = parseInt(seriNo.replace(/^0+/,'').slice(-1));
-          if (son >= 1 && son <= 9) paketSira = son;
-        }
-        i = end;
-      } else if (ai2==='37'||ai2==='30') {  // Paket adedi
-        const m = rem.substring(i+2,i+10).match(/^(\d+)/);
-        if (m) { toplamPaket=parseInt(m[1])||1; i+=2+m[1].length; } else i+=3;
-      } else if (ai2==='95') {    // SAS kalem
-        sas = rem.substring(i+2,i+12); i+=12;
-      } else if (ai2==='97') {    // Özel: son rakam toplam paket
-        const son=parseInt(rem.substring(i+2,i+20).replace(/\x1d.*/,'').slice(-1));
-        if (son>0&&son<10) toplamPaket=son;
-        i+=10;
-      } else if (ai3==='310'||ai3==='320'||ai3==='330') { // ölçü AIs (6 digit)
-        i+=2+6;
-      } else {
-        i++;
-      }
+    const gtin = raw.substring(2, 16);
+    let pos = 16;
+    let seriNo = null, sas = null, paketSira = 1, toplamPaket = 1;
+
+    // AI 21: Seri No (GS-terminated veya 16 karakter)
+    if (raw.substring(pos, pos+2) === '21') {
+      pos += 2;
+      const gs = raw.indexOf('\x1d', pos);
+      const end = gs > 0 ? gs : pos + 16;
+      seriNo = raw.substring(pos, Math.min(end, raw.length));
+      pos = Math.min(end, raw.length);
+      if (raw[pos] === '\x1d') pos++;
     }
-    // Fallback: N/T pattern direkt barkodda
-    if (toplamPaket===1) {
-      const m = raw.match(/[^0-9]0*(\d{1,5})[\/]0*(\d{1,5})(?:[^0-9]|$)/);
-      if (m) { paketSira=parseInt(m[1])||1; toplamPaket=parseInt(m[2])||1; }
+
+    // AI 10: Lot/Parti (GS-terminated veya 18 karakter — genellikle sıfır dolu)
+    if (raw.substring(pos, pos+2) === '10') {
+      pos += 2;
+      const gs = raw.indexOf('\x1d', pos);
+      const end = gs > 0 ? gs : pos + 18;
+      pos = Math.min(end, raw.length);
+      if (raw[pos] === '\x1d') pos++;
     }
-    return { fmt:'GS1', gtin, urunKodu:raw.slice(-10), seriNo:seriNo||gtin, paketSira, toplamPaket, sas, ham:raw };
+
+    // AI 91: Toplam Paket (2 karakter sabit)
+    if (raw.substring(pos, pos+2) === '91') {
+      toplamPaket = parseInt(raw.substring(pos+2, pos+4)) || 1;
+      pos += 4;
+    }
+
+    // AI 92: Paket Sırası (2 karakter sabit)
+    if (raw.substring(pos, pos+2) === '92') {
+      paketSira = parseInt(raw.substring(pos+2, pos+4)) || 1;
+      pos += 4;
+    }
+
+    // AI 93: Özel (2 karakter — atla)
+    if (raw.substring(pos, pos+2) === '93') pos += 4;
+
+    // AI 94: Özel (10 karakter — atla)
+    if (raw.substring(pos, pos+2) === '94') pos += 12;
+
+    // AI 95: SAS / İş Emri (10 karakter sabit)
+    if (raw.substring(pos, pos+2) === '95') {
+      sas = raw.substring(pos+2, pos+12).replace(/^0+/, '') || null;
+      pos += 12;
+    }
+
+    // AI 96, 97: Özel — 99 ve 98'den geriye doğru hesaplıyoruz, buradan atla
+
+    // AI 99 sondaki 20 karakterde: "99" + 18 haneli mamul kodu
+    let urunKodu = raw.slice(-10); // varsayılan fallback
+    if (raw.slice(-20, -18) === '99') {
+      urunKodu = raw.slice(-18).replace(/^0+/, '') || raw.slice(-10);
+    }
+
+    // Seri No ile birleştir: seri + paket sırası benzersiz kimlik için
+    const seriKey = (seriNo || gtin) + '_p' + paketSira;
+
+    return { fmt:'GS1', gtin, urunKodu, seriNo: seriKey, paketSira, toplamPaket, sas, ham:raw };
   }
 
-  // N/T pattern (e.g. "1/5" veya "01/05")
-  const slashM = raw.match(/^.*?(\d+)\/(\d+).*$/);
+  // N/T pattern (örn: "1/5")
+  const slashM = raw.match(/(\d+)\/(\d+)/);
   if (slashM) {
     return { fmt:'RAW', gtin:null, urunKodu:raw.slice(-10), seriNo:raw,
       paketSira:parseInt(slashM[1])||1, toplamPaket:parseInt(slashM[2])||1, sas:null, ham:raw };
