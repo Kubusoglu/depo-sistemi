@@ -232,7 +232,8 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
       <input class="inp" id="lSifre" type="password" placeholder="••••••">
     </div>
     <div class="login-err" id="loginErr"></div>
-    <button class="btn btn-p mt8" onclick="doLogin()">Giriş Yap</button>
+    <button class="btn btn-p mt8" id="loginBtn" onclick="doLogin()">Giriş Yap</button>
+    <button class="btn btn-g mt8" id="loginSyncBtn" onclick="loginSyncAndRetry()" style="font-size:12px">↻ Kullanıcıları Güncelle</button>
   </div>
 </div>
 
@@ -519,7 +520,7 @@ function doLogin() {
   const sifre = document.getElementById('lSifre').value;
   const k = DB.kullanicilar.find(u => u.ad === ad && u.sifre === sifre);
   if (!k) {
-    document.getElementById('loginErr').textContent = 'Kullanıcı adı veya şifre hatalı.';
+    document.getElementById('loginErr').innerHTML = 'Kullanıcı adı veya şifre hatalı.<br><span style="font-size:10px;color:var(--dim)">Yeni kullanıcıysa ↻ Güncelle butonuna basın</span>';
     return;
   }
   DB.aktifKullanici = { id: k.id, ad: k.ad, depo: k.depo, rol: k.rol };
@@ -1808,13 +1809,53 @@ document.addEventListener('keydown', e => {
 });
 
 // ═══════════════════════════════════════════════════
-// INIT
+// INIT — başlangıçta kullanıcıları Sheets'ten çek
 // ═══════════════════════════════════════════════════
-if (DB.aktifKullanici) {
-  startApp();
-} else {
+async function initApp() {
+  if (DB.aktifKullanici) {
+    startApp();
+    return;
+  }
+  // Giriş ekranını göster, arka planda kullanıcıları çek
   document.getElementById('loginScreen').style.display = 'flex';
+  if (DB.url) await fetchUsersForLogin();
 }
+
+async function fetchUsersForLogin() {
+  try {
+    const res  = await fetch(DB.url + '?action=getConfig', { mode:'cors', redirect:'follow' });
+    if (!res.ok) return;
+    const json = await res.json();
+    if (!json.ok || !json.data) return;
+    const { kullanicilar: remoteK = [], depolar: remoteD = [] } = json.data;
+    let degisti = false;
+    remoteK.forEach(r => {
+      const l = DB.kullanicilar.find(k => k.id === r.id);
+      if (!l) { DB.kullanicilar.push(r); degisti = true; }
+      else if (l.sifre !== r.sifre || l.depo !== r.depo || l.rol !== r.rol) {
+        l.sifre = r.sifre; l.depo = r.depo; l.rol = r.rol; degisti = true;
+      }
+    });
+    remoteD.forEach(d => { if (d && !DB.depolar.includes(d)) { DB.depolar.push(d); degisti = true; } });
+    if (degisti) {
+      localStorage.setItem('d3_users', JSON.stringify(DB.kullanicilar));
+      localStorage.setItem('d3_depolar', JSON.stringify(DB.depolar));
+    }
+  } catch(e) {}
+}
+
+async function loginSyncAndRetry() {
+  const btn = document.getElementById('loginSyncBtn');
+  btn.textContent = '⏳ Güncelleniyor...';
+  btn.disabled = true;
+  await fetchUsersForLogin();
+  btn.textContent = '✓ Güncellendi — şimdi giriş yapın';
+  btn.style.color = '#4ade80';
+  document.getElementById('loginErr').textContent = '';
+  setTimeout(() => { btn.textContent = '↻ Kullanıcıları Güncelle'; btn.disabled = false; btn.style.color = ''; }, 3000);
+}
+
+initApp();
 </script>
 </body>
 </html>
