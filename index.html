@@ -366,8 +366,12 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
   <!-- kamera konteyneri — gizli, JS tarafından doğru karta taşınır -->
   <div id="camContainer" style="display:none;margin-bottom:8px">
     <div class="scan-wrap"><div id="qr-reader" style="width:100%"></div></div>
-    <div style="text-align:center;font-size:10px;color:var(--dim);font-family:var(--mono);padding:5px">QR / DataMatrix çerçeve içine alın</div>
-    <button class="btn btn-g btn-sm mt8" onclick="stopCam()" style="width:100%">📷 Kamerayı Durdur</button>
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <button class="btn btn-p btn-sm" style="flex:2;font-size:13px;padding:10px" onclick="captureScan()">📸 Okut</button>
+      <button class="btn btn-sm" id="torchBtn" style="flex:1;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.25)" onclick="toggleTorch()">🔦 Fener</button>
+      <button class="btn btn-g btn-sm" style="flex:1" onclick="stopCam()">✕ Kapat</button>
+    </div>
+    <div style="text-align:center;font-size:10px;color:var(--dim);font-family:var(--mono);padding:4px 0 0">Otomatik okur · Küçük barkod için 📸 Okut'a basın</div>
   </div>
   <div id="scanList"></div>
 </div>
@@ -1497,10 +1501,10 @@ function parseGS1(raw) {
 }
 
 function isUrunTam(o,u) {
-  const tp  = u.toplamPaket || 1;
+  const tp   = u.toplamPaket || 1;
   const adet = u.miktar || 1;
-  const oks = o.hareketler.filter(h=>h.urunKodu===u.kod);
-  // Her paket sırası tam olarak 'adet' kez okutulmuş olmalı
+  const oks  = o.hareketler.filter(h=>h.urunKodu===u.kod);
+  if (tp <= 1) return oks.length >= adet; // tek paket: sadece okutma sayısı yeterli
   for (let i=1; i<=tp; i++) {
     if (oks.filter(h=>h.paketSira===i).length < adet) return false;
   }
@@ -1540,11 +1544,17 @@ async function startCam(sesId) {
   try {
     qrSc = new Html5Qrcode('qr-reader');
     await qrSc.start(
-      {facingMode:'environment'},
-      {fps:8, qrbox:{width:240,height:240}, supportedScanTypes:[0,1]},
+      { facingMode:'environment' },
+      {
+        fps: 6,
+        qrbox: (w,h) => ({ width: Math.min(w,h)*0.8|0, height: Math.min(w,h)*0.8|0 }),
+        supportedScanTypes: [0, 1],
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+        videoConstraints: { facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} }
+      },
       txt => {
         if (DB.cool) return;
-        if (DB.lastBarcode === txt) return; // aynı barkod tekrar okunmasın
+        if (DB.lastBarcode === txt) return;
         DB.cool = true;
         DB.lastBarcode = txt;
         setTimeout(()=>{ DB.cool=false; DB.lastBarcode=null; }, 5000);
@@ -1570,6 +1580,70 @@ async function stopCam() {
   document.getElementById('appWrap').appendChild(cam);
   DB.camSesId = null;
   renderScanPage();
+}
+
+let torchOn = false;
+async function toggleTorch() {
+  try {
+    const vid = document.querySelector('#qr-reader video');
+    if (!vid || !vid.srcObject) return;
+    const track = vid.srcObject.getVideoTracks()[0];
+    if (!track) return;
+    torchOn = !torchOn;
+    await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+    const btn = document.getElementById('torchBtn');
+    if (btn) btn.style.background = torchOn ? 'rgba(251,191,36,.4)' : 'rgba(251,191,36,.1)';
+  } catch(e) { toast('Fener desteklenmiyor', 'warn'); }
+}
+
+async function captureScan() {
+  if (!DB.camSesId) return;
+  const vid = document.querySelector('#qr-reader video');
+  if (!vid) { toast('Kamera aktif değil', 'err'); return; }
+  // Canvas'a çek ve BarcodeDetector ile dene
+  const canvas = document.createElement('canvas');
+  canvas.width = vid.videoWidth;
+  canvas.height = vid.videoHeight;
+  canvas.getContext('2d').drawImage(vid, 0, 0);
+  if (window.BarcodeDetector) {
+    try {
+      const detector = new BarcodeDetector({ formats: ['qr_code','data_matrix','code_128','code_39','ean_13','ean_8','itf','pdf417','aztec'] });
+      const results = await detector.detect(canvas);
+      if (results.length) {
+        const txt = results[0].rawValue;
+        if (txt && txt !== DB.lastBarcode) {
+          DB.cool = true; DB.lastBarcode = txt;
+          setTimeout(()=>{ DB.cool=false; DB.lastBarcode=null; }, 5000);
+          doBarcode(DB.camSesId, txt);
+        } else if (txt === DB.lastBarcode) {
+          toast('Bu barkod zaten okutuldu (5sn bekleme)', 'warn');
+        } else {
+          toast('Barkod bulunamadı — tekrar deneyin', 'warn');
+        }
+      } else {
+        toast('Barkod bulunamadı — barkodu çerçeveye alın', 'warn');
+      }
+    } catch(e) { toast('Okuma hatası: ' + e.message, 'err'); }
+  } else {
+    // BarcodeDetector yoksa Html5Qrcode ile dosya olarak dene
+    try {
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
+      const file = new File([blob], 'frame.jpg', { type: 'image/jpeg' });
+      const tmp = new Html5Qrcode('qr-reader-tmp-' + Date.now());
+      // Geçici div oluştur
+      const div = document.createElement('div');
+      div.id = tmp._elementId;
+      div.style.display = 'none';
+      document.body.appendChild(div);
+      const result = await new Html5Qrcode(div.id).scanFile(file, false);
+      div.remove();
+      if (result && result !== DB.lastBarcode) {
+        DB.cool = true; DB.lastBarcode = result;
+        setTimeout(()=>{ DB.cool=false; DB.lastBarcode=null; }, 5000);
+        doBarcode(DB.camSesId, result);
+      }
+    } catch(e) { toast('Barkod okunamadı — yaklaştırın', 'warn'); }
+  }
 }
 
 // ═══════════════════════════════════════════════════
