@@ -1535,26 +1535,19 @@ function getFazla(o) {
 // KAMERA
 // ═══════════════════════════════════════════════════
 let qrSc = null;
-// Mükerrer önleme: barkod → son okuma zamanı (ms)
-const recentScans = new Map();
-const SCAN_COOLDOWN = 8000; // ms — aynı barkod 8sn içinde tekrar işlenmesin
+// Kamera oturumunda okunan barkodlar — kamera kapanana kadar tekrar işlenmesin
+const camScanned = new Set();
 
 function isDuplicate(txt) {
-  const now = Date.now();
-  const last = recentScans.get(txt);
-  if (last && now - last < SCAN_COOLDOWN) return true;
-  recentScans.set(txt, now);
-  // Eski kayıtları temizle
-  if (recentScans.size > 50) {
-    for (const [k,v] of recentScans) { if (now - v > SCAN_COOLDOWN) recentScans.delete(k); }
-  }
+  if (camScanned.has(txt)) return true;
+  camScanned.add(txt);
   return false;
 }
 
 async function startCam(sesId) {
   if (qrSc) { try { await qrSc.stop(); } catch(e) {} qrSc = null; }
   DB.camSesId = sesId;
-  recentScans.clear();
+  camScanned.clear();
 
   const slot = document.getElementById('camSlot-'+sesId);
   if (!slot) return;
@@ -1620,7 +1613,7 @@ async function stopCam() {
     try { await qrSc.stop(); } catch(e) {}
     qrSc = null;
   }
-  recentScans.clear();
+  camScanned.clear();
   torchOn = false;
   const zoomBar = document.getElementById('zoomBar');
   if (zoomBar) zoomBar.style.display = 'none';
