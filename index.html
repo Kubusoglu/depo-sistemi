@@ -1271,7 +1271,7 @@ function buildScanCard(o) {
 function buildUrunDurum(o) {
   let html = '';
   o.urunler.forEach(u => {
-    const tp   = u.toplamPaket || 1;
+    const tp   = getUrunTp(o, u);
     const adet = u.miktar || 1;
     const oks  = o.hareketler.filter(h => h.urunKodu===u.kod);
     const tam  = isUrunTam(o,u);
@@ -1500,11 +1500,20 @@ function parseGS1(raw) {
   return { fmt:'RAW', gtin:null, urunKodu:raw.slice(-10), seriNo:raw, paketSira:1, toplamPaket:1, sas:null, ham:raw };
 }
 
+function getUrunTp(o, u) {
+  // Barkodlardan gelen en yüksek toplamPaket değerini al
+  const oks = o.hareketler.filter(h=>h.urunKodu===u.kod);
+  const fromOks = oks.length ? Math.max(...oks.map(h=>h.toplamPaket||1)) : 1;
+  const tp = Math.max(u.toplamPaket||1, fromOks);
+  if (tp > (u.toplamPaket||1)) u.toplamPaket = tp; // güncelle
+  return tp;
+}
+
 function isUrunTam(o,u) {
-  const tp   = u.toplamPaket || 1;
+  const tp   = getUrunTp(o, u);
   const adet = u.miktar || 1;
   const oks  = o.hareketler.filter(h=>h.urunKodu===u.kod);
-  if (tp <= 1) return oks.length >= adet; // tek paket: sadece okutma sayısı yeterli
+  if (tp <= 1) return oks.length >= adet;
   for (let i=1; i<=tp; i++) {
     if (oks.filter(h=>h.paketSira===i).length < adet) return false;
   }
