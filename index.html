@@ -1379,11 +1379,16 @@ function refreshScanCard(id) {
   if (!card) { renderScanPage(); return; }
   const o = DB.oturumlar.find(x=>x.id===id);
   if (!o) { renderScanPage(); return; }
+  // outerHTML değişince card içindeki camContainer DOM'dan kopar — önce çıkar
+  const cam = document.getElementById('camContainer');
+  if (DB.camSesId === id && cam && card.contains(cam)) {
+    document.getElementById('appWrap').appendChild(cam);
+  }
   card.outerHTML = buildScanCard(o);
-  // Kamera slotunu yeniden yerleştir
-  if (DB.camSesId === id) {
+  // Kamerayı yeni slota geri yerleştir
+  if (DB.camSesId === id && cam) {
     const slot = document.getElementById('camSlot-'+id);
-    if (slot) { const cam=document.getElementById('camContainer'); cam.style.display='block'; slot.appendChild(cam); }
+    if (slot) { cam.style.display='block'; slot.appendChild(cam); }
   }
 }
 
