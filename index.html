@@ -284,9 +284,10 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
     <div class="g2">
       <div class="ig">
         <label class="lbl">Oturum Tipi *</label>
-        <select class="inp" id="nf-tip">
+        <select class="inp" id="nf-tip" onchange="onTipChange(this.value)">
           <option value="kabul">📦 Mal Kabul</option>
           <option value="cikis">🚚 Mal Çıkış</option>
+          <option value="sayim">🔢 Sayım</option>
         </select>
       </div>
       <div class="ig">
@@ -313,6 +314,7 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
       <input class="inp" id="nf-sorumlu" placeholder="Ad Soyad">
     </div>
 
+    <div id="xlsxSection">
     <div class="div"></div>
     <div class="ct">Ürün Listesi</div>
 
@@ -331,6 +333,10 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
       <label class="lbl">veya Excel'den Kopyalayıp Yapıştırın</label>
       <textarea class="inp" id="nf-liste" rows="5" placeholder="Excel'den kopyalayıp yapıştırın..."></textarea>
     </div>
+    </div>
+    <div id="sayimInfo" style="display:none;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:8px;padding:12px;margin-top:8px;font-size:13px;color:#a78bfa">
+      🔢 Sayım oturumunda ürün listesi gerekmez. Oturumu oluşturun ve barkodları okutun — sistem otomatik sayar.
+    </div>
 
     <div class="card" id="onizleme" style="display:none;background:var(--s2);border-color:var(--border2)">
       <div class="ct">Önizleme</div>
@@ -344,6 +350,10 @@ textarea.inp{resize:vertical;min-height:80px;font-size:12px;font-family:var(--mo
     <div id="oturumOlusturDiv" style="display:none">
       <div class="div"></div>
       <button class="btn btn-p" onclick="createSession()">✓ Oturumu Oluştur</button>
+    </div>
+    <div id="sayimOlusturDiv" style="display:none">
+      <div class="div"></div>
+      <button class="btn btn-p" onclick="createSession()">✓ Sayım Oturumu Oluştur</button>
     </div>
   </div>
 
@@ -793,10 +803,19 @@ function renderAdminSesList() {
 // OTURUM NO ÜRETİCİ
 // ═══════════════════════════════════════════════════
 function genSesId(tip) {
-  const prefix = tip === 'kabul' ? 'MK' : 'MC';
+  const prefix = tip === 'kabul' ? 'MK' : tip === 'sayim' ? 'SY' : 'MC';
   const d = new Date().toISOString().slice(0,10).replace(/-/g,'');
   const n = DB.oturumlar.filter(o => o.id.startsWith(prefix+'-'+d)).length;
   return `${prefix}-${d}-${String(n+1).padStart(3,'0')}`;
+}
+
+function onTipChange(tip) {
+  const isSayim = tip === 'sayim';
+  document.getElementById('xlsxSection').style.display  = isSayim ? 'none' : '';
+  document.getElementById('sayimInfo').style.display    = isSayim ? 'block' : 'none';
+  document.getElementById('sayimOlusturDiv').style.display = isSayim ? 'block' : 'none';
+  document.getElementById('oturumOlusturDiv').style.display = 'none';
+  document.getElementById('btnOnizle').style.display   = isSayim ? 'none' : '';
 }
 
 // ═══════════════════════════════════════════════════
@@ -991,7 +1010,7 @@ function createSession() {
 
   if (!depo)    { toast('Depo seçin!', 'err'); return; }
   if (!sorumlu) { toast('Sorumlu personel girin!', 'err'); return; }
-  if (parsedUrunler.length === 0) { toast('Ürün listesini analiz edin!', 'err'); return; }
+  if (tip !== 'sayim' && parsedUrunler.length === 0) { toast('Ürün listesini analiz edin!', 'err'); return; }
 
   const id = genSesId(tip);
   const ses = {
@@ -1048,7 +1067,7 @@ function renderOturumlar() {
 function oturumKarti(o) {
   const stats   = getSesStats(o);
   const aktifMi = o.id === DB.aktifId;
-  const tipLabel = o.tip === 'kabul' ? '📦 MAL KABUL' : '🚚 MAL ÇIKIŞ';
+  const tipLabel = o.tip === 'kabul' ? '📦 MAL KABUL' : o.tip === 'sayim' ? '🔢 SAYIM' : '🚚 MAL ÇIKIŞ';
   const pct = stats.toplamPkt > 0 ? Math.min(100,Math.round(stats.okutulan/stats.toplamPkt*100)) : 0;
   const progColor = o.hatali ? '#f97316' : (pct>=100 ? '#22c55e' : (o.tip==='kabul'?'var(--blue)':'var(--red)'));
 
@@ -1219,7 +1238,7 @@ function buildScanCard(o) {
   btns += `<button class="btn btn-r btn-sm" onclick="endSession('${o.id}')">⏹ Bitir</button>`;
 
   // Ürün durumu HTML
-  const urunHtml = buildUrunDurum(o);
+  const urunHtml = o.tip === 'sayim' ? buildSayimDurum(o) : buildUrunDurum(o);
 
   return `<div class="sc-card ${o.tip} ${o.durum} ${isOpen?'open':''}" id="sc-${o.id}">
     <div class="sc-hdr" onclick="toggleExpand('${o.id}')">
@@ -1396,40 +1415,44 @@ function doBarcode(sesId, raw) {
     }
   }
 
-  const listeUrun = o.urunler.find(u => u.kod===p.urunKodu);
-  const listede   = !!listeUrun;
+  const isSayim  = o.tip === 'sayim';
+  const listeUrun = isSayim ? null : o.urunler.find(u => u.kod===p.urunKodu);
+  const listede   = isSayim ? true : !!listeUrun;
   if (listeUrun && p.toplamPaket > (listeUrun.toplamPaket||1)) listeUrun.toplamPaket = p.toplamPaket;
 
   const h = { id:Date.now(), ts:new Date().toISOString(), urunKodu:p.urunKodu, gtin:p.gtin, seriNo:p.seriNo, paketSira:p.paketSira, toplamPaket:p.toplamPaket, sas:p.sas, fmt:p.fmt, listede, ham:p.ham };
   o.hareketler.push(h);
 
-  const st = getSesStats(o);
-  if (st.okutulan>=st.toplamPkt && st.eksik===0 && st.fazla===0) o.durum='tamamlandi';
-  else if (!listede||st.fazla>0) o.durum='sorunlu';
-  else o.durum='devam';
+  if (isSayim) {
+    o.durum = 'devam';
+  } else {
+    const st = getSesStats(o);
+    if (st.okutulan>=st.toplamPkt && st.eksik===0 && st.fazla===0) o.durum='tamamlandi';
+    else if (!listede||st.fazla>0) o.durum='sorunlu';
+    else o.durum='devam';
+  }
   persist();
 
-  const tamMi = listeUrun ? isUrunTam(o,listeUrun) : false;
-
-  // Toast + ses geri bildirimi
-  if (!listede)    { toast('⚡ Listede olmayan ürün!','warn'); feedback('warn'); }
-  else if (tamMi)  { toast(`✅ ${listeUrun.ad||p.urunKodu} tamamlandı!`,'ok'); feedback('ok'); }
-  else             { feedback('ok'); }
+  // Toast + ses
+  if (isSayim) {
+    feedback('ok');
+    showRes(sesId,'ok','🔢','Sayım Kaydedildi',`Paket ${p.paketSira}/${p.toplamPaket}`,
+      {'Ürün Kodu':p.urunKodu,'Paket':`${p.paketSira}/${p.toplamPaket}`,'Seri':p.seriNo||'—'});
+  } else {
+    const tamMi = listeUrun ? isUrunTam(o,listeUrun) : false;
+    if (!listede)   { toast('⚡ Listede olmayan ürün!','warn'); feedback('warn'); }
+    else if (tamMi) { toast(`✅ ${listeUrun.ad||p.urunKodu} tamamlandı!`,'ok'); feedback('ok'); }
+    else            { feedback('ok'); }
+    const resType = !listede ? 'warn' : 'ok';
+    const resIco  = !listede ? '⚡' : (tamMi ? '✅' : '📦');
+    const resTtl  = !listede ? 'Listede Olmayan Ürün!' : (tamMi ? `${listeUrun.ad||p.urunKodu} — Tamamlandı!` : 'Paket Kabul Edildi');
+    const resMsg  = !listede ? 'Bu ürün beklenen listede yok.' : (tamMi ? null : `${p.paketSira}/${p.toplamPaket} paket okutuldu`);
+    showRes(sesId, resType, resIco, resTtl, resMsg,
+      {'Ürün Kodu':p.urunKodu,'Paket':`${p.paketSira}/${p.toplamPaket}`,'Seri':p.seriNo||'—','SAS':p.sas||'—'});
+  }
 
   if (DB.url) sendSheets({action:'addHareket', oturumId:o.id, depo:o.depo, sorumlu:o.sorumlu, ...h});
-
-  // Kartı yeniden çiz (ürün durumu + progress güncellenir)
   refreshScanCard(sesId);
-
-  // Sonuç kutusunu yaz (kart yeniden çizildikten sonra)
-  const resType = !listede ? 'warn' : 'ok';
-  const resIco  = !listede ? '⚡' : (tamMi ? '✅' : '📦');
-  const resTtl  = !listede ? 'Listede Olmayan Ürün!'
-                           : (tamMi ? `${listeUrun.ad||p.urunKodu} — Tamamlandı!` : 'Paket Kabul Edildi');
-  const resMsg  = !listede ? 'Bu ürün beklenen listede yok.'
-                           : (tamMi ? null : `${p.paketSira}/${p.toplamPaket} paket okutuldu`);
-  showRes(sesId, resType, resIco, resTtl, resMsg,
-    {'Ürün Kodu':p.urunKodu,'Paket':`${p.paketSira}/${p.toplamPaket}`,'Seri':p.seriNo||'—','SAS':p.sas||'—'});
 }
 
 function showRes(sesId, tip, ico, ttl, msg, fields) {
@@ -1524,6 +1547,46 @@ function isUrunTam(o,u) {
     if (oks.filter(h=>h.paketSira===i).length < adet) return false;
   }
   return true;
+}
+
+function buildSayimDurum(o) {
+  if (!o.hareketler.length) return '<div style="font-size:12px;color:var(--dim);padding:8px 0">Henüz barkod okutulmadı — okutmaya başlayın</div>';
+  // Ürün koduna göre grupla
+  const map = new Map();
+  o.hareketler.forEach(h => {
+    if (!map.has(h.urunKodu)) map.set(h.urunKodu, { tp: 0, counts: {} });
+    const u = map.get(h.urunKodu);
+    u.tp = Math.max(u.tp, h.toplamPaket || 1);
+    u.counts[h.paketSira] = (u.counts[h.paketSira] || 0) + 1;
+  });
+  let html = '';
+  for (const [kod, data] of map) {
+    const tp = data.tp || 1;
+    const counts = data.counts;
+    // Tam ürün = her paket sırasından en az 1 tane var ise min sayısı kadar
+    const perPkt = Array.from({length: tp}, (_, i) => counts[i+1] || 0);
+    const tam = Math.min(...perPkt);
+    let pkts = '';
+    for (let i = 1; i <= tp; i++) {
+      const cnt = counts[i] || 0;
+      const extra = cnt - tam;
+      const bg  = cnt === 0 ? 'var(--red-soft)'    : extra > 0 ? 'rgba(251,191,36,.15)' : 'var(--green-soft)';
+      const col = cnt === 0 ? '#f87171'             : extra > 0 ? '#fbbf24'              : '#4ade80';
+      pkts += `<div class="pkb" style="background:${bg};color:${col};border:1px solid ${col}33;width:28px;height:28px;flex-direction:column;line-height:1.1">
+        ${i}<span style="font-size:7px">${cnt}</span>
+      </div>`;
+    }
+    const extraPkts = perPkt.map((c,i) => c > tam ? `P${i+1}:+${c-tam}` : '').filter(Boolean).join(' ');
+    html += `<div class="urow ${tam>0?'tam':'eksik'}">
+      <div class="urow-ico" style="font-size:14px;font-weight:700;color:${tam>0?'#4ade80':'#f87171'}">${tam}</div>
+      <div class="urow-body">
+        <div class="urow-ttl">${kod}</div>
+        <div class="urow-sub">${tam} tam ürün · ${tp} paket/ürün${extraPkts?' · <span style="color:#fbbf24">'+extraPkts+' fazla</span>':''}</div>
+        <div class="urow-paket">${pkts}</div>
+      </div>
+    </div>`;
+  }
+  return html;
 }
 
 function getFazla(o) {
