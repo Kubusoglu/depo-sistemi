@@ -623,9 +623,21 @@ async function doSync(silent) {
 
     // Oturumlar
     let eklenen = 0;
+    const remoteSesIds = new Set(remoteSes.map(r => r.id).filter(Boolean));
+
+    // Sheets'te olmayan oturumları yerelden kaldır (admin silmiş olabilir)
+    const onceki = DB.oturumlar.length;
+    DB.oturumlar = DB.oturumlar.filter(l => {
+      if (DB.deletedSesIds.includes(l.id)) return false; // zaten silinmiş
+      if (!remoteSesIds.has(l.id)) return false;         // Sheets'ten kalkmış = admin sildi
+      return true;
+    });
+    if (DB.oturumlar.length !== onceki) degisti = true;
+
+    // Sheets'te var ama yerelde yok → ekle
     remoteSes.forEach(r => {
       if (!r.id) return;
-      if (DB.deletedSesIds.includes(r.id)) return; // silinmiş, geri getirme
+      if (DB.deletedSesIds.includes(r.id)) return;
       const l = DB.oturumlar.find(o => o.id === r.id);
       if (!l) { DB.oturumlar.push(r); eklenen++; }
       else if (r.kapali && !l.kapali) { l.kapali = r.kapali; l.durum = r.durum; l.hatali = r.hatali || false; degisti = true; }
