@@ -1116,20 +1116,8 @@ async function deleteSes(id) {
   if (!isAdmin()) { toast('Sadece yönetici silebilir', 'err'); return; }
   if (!confirm('Bu oturumu ve tüm verileri silmek istiyor musunuz?')) return;
 
-  // Sheets'ten sil
-  let sheetsOk = false;
-  try {
-    const res = await fetch(DB.url, {
-      method:'POST', mode:'cors', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=UTF-8'},
-      body: JSON.stringify({ action:'deleteSession', oturumId: id })
-    });
-    const json = await res.json().catch(() => null);
-    sheetsOk = json && json.ok;
-    if (!sheetsOk) toast('Sheets silme hatası: ' + (json ? json.err || JSON.stringify(json) : 'yanıt yok'), 'err');
-  } catch(e) {
-    toast('Sheets bağlantı hatası: ' + e.message, 'err');
-  }
+  // Sheets'ten sil (no-cors, URLSearchParams — preflight yok)
+  sendSheets({ action:'deleteSession', oturumId: id });
 
   // Yerelden sil, silinenleri hatırla (sync geri getirmesin)
   DB.oturumlar = DB.oturumlar.filter(o => o.id !== id);
@@ -1140,6 +1128,13 @@ async function deleteSes(id) {
   renderOturumlar();
   if (document.getElementById('pg-yonetim').classList.contains('on')) renderYonetim();
   toast('Oturum silindi ✓', 'info');
+
+  // 4 saniye sonra sync — Sheets'ten gerçekten kalktı mı kontrol et
+  setTimeout(async () => {
+    await doSync(true);
+    const hala = DB.oturumlar.find(o => o.id === id);
+    if (hala) toast('⚠️ Sheets silme başarısız — tekrar deneyin', 'err');
+  }, 4000);
 }
 
 function endSession(id) {
