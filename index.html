@@ -1377,7 +1377,7 @@ function doBarcode(sesId, raw) {
 
   const listeUrun = o.urunler.find(u => u.kod===p.urunKodu);
   const listede   = !!listeUrun;
-  if (listeUrun && p.toplamPaket>1 && listeUrun.toplamPaket===1) listeUrun.toplamPaket = p.toplamPaket;
+  if (listeUrun && p.toplamPaket > (listeUrun.toplamPaket||1)) listeUrun.toplamPaket = p.toplamPaket;
 
   const h = { id:Date.now(), ts:new Date().toISOString(), urunKodu:p.urunKodu, gtin:p.gtin, seriNo:p.seriNo, paketSira:p.paketSira, toplamPaket:p.toplamPaket, sas:p.sas, fmt:p.fmt, listede, ham:p.ham };
   o.hareketler.push(h);
@@ -1429,18 +1429,52 @@ function showRes(sesId, tip, ico, ttl, msg, fields) {
 function parseGS1(raw) {
   raw = raw.trim();
   if (raw.length < 4) return { err:'Çok kısa' };
-  if (raw.startsWith('01') && raw.length > 40) {
-    const gtin  = raw.substring(2,16);
-    const aiPkt = raw.substring(16,18);
-    let paketSira=1, seriNo=null;
-    if (aiPkt[0]==='2' && !isNaN(aiPkt[1])) { paketSira=parseInt(aiPkt[1])||1; seriNo=raw.substring(18,36).trim(); }
-    let toplamPaket=1;
-    const i97=raw.indexOf('97');
-    if (i97>40) { const son=parseInt(raw.substring(i97+2,i97+18).slice(-1)); if(son>0&&son<10) toplamPaket=son; }
-    let sas=null;
-    const i95=raw.indexOf('95');
-    if (i95>40) sas=raw.substring(i95+2,i95+12);
-    return { fmt:'GS1', gtin, urunKodu:raw.slice(-10), seriNo, paketSira, toplamPaket, sas, ham:raw };
+
+  if (raw.startsWith('01') && raw.length > 20) {
+    const gtin   = raw.substring(2,16);
+    let rem      = raw.substring(16);
+    let paketSira=1, toplamPaket=1, seriNo=null, sas=null;
+    let i=0;
+    while (i < rem.length) {
+      if (rem[i] === '\x1d') { i++; continue; }
+      const ai2 = rem.substring(i,i+2);
+      const ai3 = rem.substring(i,i+3);
+      if (ai2==='21') {           // Seri no (variable ≤20, GS-terminated)
+        let end = rem.indexOf('\x1d', i+2);
+        if (end<0) end = Math.min(i+22, rem.length);
+        seriNo = rem.substring(i+2, end);
+        // N/T veya NNNNN.TTTTT pattern'i seri içinde ara
+        const m = seriNo.match(/[^0-9]?0*(\d+)[\/.]0*(\d+)/);
+        if (m) { paketSira=parseInt(m[1])||1; toplamPaket=parseInt(m[2])||1; }
+        i = end;
+      } else if (ai2==='37'||ai2==='30') {  // Paket adedi
+        const m = rem.substring(i+2,i+10).match(/^(\d+)/);
+        if (m) { toplamPaket=parseInt(m[1])||1; i+=2+m[1].length; } else i+=3;
+      } else if (ai2==='95') {    // SAS kalem
+        sas = rem.substring(i+2,i+12); i+=12;
+      } else if (ai2==='97') {    // Özel: son rakam toplam paket
+        const son=parseInt(rem.substring(i+2,i+20).replace(/\x1d.*/,'').slice(-1));
+        if (son>0&&son<10) toplamPaket=son;
+        i+=10;
+      } else if (ai3==='310'||ai3==='320'||ai3==='330') { // ölçü AIs (6 digit)
+        i+=2+6;
+      } else {
+        i++;
+      }
+    }
+    // Fallback: N/T pattern direkt barkodda
+    if (toplamPaket===1) {
+      const m = raw.match(/[^0-9]0*(\d{1,5})[\/]0*(\d{1,5})(?:[^0-9]|$)/);
+      if (m) { paketSira=parseInt(m[1])||1; toplamPaket=parseInt(m[2])||1; }
+    }
+    return { fmt:'GS1', gtin, urunKodu:raw.slice(-10), seriNo:seriNo||gtin, paketSira, toplamPaket, sas, ham:raw };
+  }
+
+  // N/T pattern (e.g. "1/5" veya "01/05")
+  const slashM = raw.match(/^.*?(\d+)\/(\d+).*$/);
+  if (slashM) {
+    return { fmt:'RAW', gtin:null, urunKodu:raw.slice(-10), seriNo:raw,
+      paketSira:parseInt(slashM[1])||1, toplamPaket:parseInt(slashM[2])||1, sas:null, ham:raw };
   }
   if (/^\d{8,14}$/.test(raw)) return { fmt:'EAN', gtin:raw, urunKodu:raw, seriNo:raw, paketSira:1, toplamPaket:1, sas:null, ham:raw };
   return { fmt:'RAW', gtin:null, urunKodu:raw.slice(-10), seriNo:raw, paketSira:1, toplamPaket:1, sas:null, ham:raw };
